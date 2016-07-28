@@ -1,0 +1,23 @@
+{
+  "name": "under-construction",
+  "version": "0.1.0",
+  "description": "Nossa pagina de em contrucao",
+  "author": "Felipe Kautzmann <felipe.kautzma@gmail.com>",
+  "main": "index.html",
+  "homepage": "https://github.com/plingbr/under-construction#readme",
+  "license": "UNLICENSED",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plingbr/under-construction.git"
+  },
+  "keywords": [
+    "under-construction"
+  ],
+  "bugs": {
+    "url": "https://github.com/plingbr/under-construction/issues"
+  },
+  
+}
