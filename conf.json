@@ -1,0 +1,26 @@
+{
+    "core_url"        : "http://api-dev.pling.net.br:5000/api/",
+    "local_core_url"  : "http://localhost:5000/api/",
+    "def_api_version" : "v1",
+    "auth"            : false,
+    "environment"     : "development",
+    "onRun"           : {
+        "cacheViews": true
+    },
+    "current_business" : "arquitetura",
+    "facebook" : {
+        "psicologia"  : "http://www.facebook.com/Universo-da-Psicologia-964507027042619/",
+        "odontologia" : "http://www.facebook.com/Universo-da-Odontologia-1515438698482657/",
+        "medicina"    : "http://www.facebook.com/Universo-da-Medicina-217099675392560/",
+        "arquitetura" : "http://www.facebook.com/Universo-da-Arquitetura-1806360639630303/",
+        "nutricao"    : "http://www.facebook.com/Universo-da-Nutricao-359638754390683/"
+    },
+    "twitter" : {
+        "psicologia" : "http://twitter.com/UnivPsicologia",
+        "odontologia" : "http://twitter.com/UnivOdontologia",
+        "medicina" : "http://twitter.com/UnivMedicina",
+        "arquitetura": "http://twitter.com/UnivArquitetura",
+        "nutricao" : "http://twitter.com/UnivNutricao"
+    }
+}
+
