@@ -1,0 +1,73 @@
+.carousel-block ul[rn-carousel] {
+    margin: auto;
+    height: 660px;
+    width: calc(100% - 1px);
+}
+.carousel-block {
+    position: relative;
+}
+.carousel-block .controls-block {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    margin-top: -20px;
+}
+.carousel-block .controls-block > svg {
+    position: absolute;
+    cursor: pointer;
+    border: 3px solid silver;
+    border-radius: 50%;
+    -webkit-transition: all 0.2s ease;
+    -moz-transition: all 0.2s ease;
+    -ms-transition: all 0.2s ease;
+    -o-transition: all 0.2s ease;
+     transition: all 0.2s ease; 
+}
+
+.carousel-block .controls-block > svg {
+    width: 40px;
+    height: 40px;
+}
+.carousel-block .controls-block > .prev {
+    left: 10px;
+}
+.carousel-block .controls-block > .next {
+    right: 10px;
+}
+    
+.carousel-block .rn-carousel-control  {
+    top: 48%;
+}
+
+.carousel-block .loader {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -280px;
+    margin-top: -104px;
+}
+
+.grid-block {
+    height: 220px;
+    /*border: 0.5px dashed silver;*/
+    float: left;
+    width: 25%;
+}
+.grid-block.block-border-right {
+    border-right: 0.5px dashed silver;
+}
+.grid-block.block-border-bottom {
+    border-bottom: 0.5px dashed silver;
+}
+
+@media (max-width: 1280px) {
+    .carousel-block ul[rn-carousel] {
+        height: 384px;
+    }
+    .grid-block {
+        height: 128px;
+    }
+    .grid-block img {
+        height: 128px;
+    }
+}

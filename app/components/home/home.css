@@ -1,0 +1,8 @@
+.carousel-container {
+    padding-top: 78px;
+    margin: auto;
+    width: 60%;
+    top: calc(50% - 78px);
+    position: relative;
+    transform: translateY( calc(-50% + 78px));
+}

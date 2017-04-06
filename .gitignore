@@ -1,0 +1,22 @@
+# Dependency directory
+node_modules
+vendor
+
+# Mac files
+.DS_Store
+
+# Visual Code files
+.vscode
+jsconfig.json
+
+# Logs
+npm-debug.*
+
+# Conf
+conf.json
+
+# Release Files
+dist
+
+#build
+build
