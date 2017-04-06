@@ -129,7 +129,7 @@ gulp.task('merge', [], (done) => {
 
     execute(gitCommands, (err) => {
         if (err) return console.error(errorMessage);
-        open('https://github.com/plingbr/painel-cliente/compare?expand=1');
+        open('https://github.com/plingbr/pling.net.br/compare?expand=1');
         done();
     });
 });
