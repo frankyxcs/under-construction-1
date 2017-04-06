@@ -1,0 +1,67 @@
+<div class="dialog-inner">
+
+    <!--loader animation-->
+    <div class="loader" ng-show="isLoading">
+        <div class="general-loader">
+            <div class="comment-icon">
+                <i class="dit"></i>
+                <i class="dit"></i>
+                <i class="dit"></i>
+            </div>
+        </div>
+
+        <p>Aguarde enviando...</p>
+    </div>
+
+     <!--Email-->
+    <form name="emailForm" style="width: 520px" ng-hide="isLoading">
+        <h2>Informe seu email</h2>
+
+        <p class="info">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque laoreet velit</p>
+
+        <div class="form-container">
+            <div class="row">
+                <div class="col-md-offset-1 col-md-10">
+                    <div class="material-input">
+                        <input md-input="Remetente" name="sender" type="email" ng-model="config.from" required>
+                        <p class="input-error help-block" ng-show="emailForm.sender.$error.required && emailForm.sender.$touched">Campo obrigatório.</p>
+                        <p class="input-error help-block" ng-show="emailForm.sender.$error.email && emailForm.sender.$touched">Email inválido.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-offset-1 col-md-10">
+                    <div class="material-input">
+                        <input md-input="Destinatário" name="to" type="email" ng-model="config.to" required>
+                        <p class="input-error help-block" ng-show="emailForm.to.$error.required && emailForm.to.$touched">Campo obrigatório.</p>
+                        <p class="input-error help-block" ng-show="emailForm.to.$error.email && emailForm.to.$touched">Email inválido.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-offset-1 col-md-10">
+                    <div class="material-input">
+                        <input md-input="Assunto" name="subject" type="text" ng-model="config.subject" required>
+                        <p class="input-error help-block" ng-show="emailForm.subject.$error.required && emailForm.subject.$touched">Campo obrigatório.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-offset-1 col-md-10">
+                    <div class="material-input">
+                        <textarea md-input="Descrição" name="description" ng-model="config.description" required></textarea>
+                        <p class="input-error help-block" ng-show="emailForm.description.$error.required && emailForm.description.$touched">Campo obrigatório.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+<div>
+<div class="dialog-footer">
+
+    <button type="button" class="md-button" ng-click="close()">Cancelar</button>
+    <button type="button" class="md-button md-primary" ng-disabled="emailForms.$invalid" ng-click="sendEmail(config)">Enviar</button>
+</div>

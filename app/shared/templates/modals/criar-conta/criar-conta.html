@@ -1,0 +1,329 @@
+<div class="dialog-inner">
+    <!--loader animation-->
+    <div ng-show="isLoading" class="loader">
+        <div class="general-loader">
+            <div class="comment-icon">
+                <i class="dit"></i>
+                <i class="dit"></i>
+                <i class="dit"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="steps" ng-hide="isLoading">                
+
+        <!--Email-->
+        <form name="emailForm" key-enter="checkEmail(login.email, emailForm);" novalidate ng-show="index === 0" style="width: 560px;">
+            <h2>Informe seu email</h2>
+
+            <p class="info">Ele será o seu login na PLING para acompanhar, via Painel do Cliente, o andamento de sua contratação. Se você já participa da PLING, informe seu login.</p>
+
+            <div class="form-container">
+                <div class="row">
+                    <div class="col-md-offset-2 col-md-8">
+                        <div class="material-input">
+                            <input md-input="Seu email" name="email" type="email" ng-model="login.email" required autocomplete="off" plg-auto-focus="emailAutoFocus">
+                            <p class="input-error help-block" ng-show="emailForm.email.$error.required && emailForm.email.$touched">Campo obrigatório.</p>
+                            <p class="input-error help-block" ng-show="emailForm.email.$error.email && emailForm.email.$touched">Email inválido.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!--Senha-->
+        <form name="loginForm" key-enter="submitLoginForm(loginForm, login)" novalidate ng-show="index === 1" style="width: 560px;">
+            <h2>{{ createAccount ? 'Crie sua senha' : 'Informe sua senha'}}</h2>
+
+            <p ng-if="!createAccount" class="info">Identificamos que você já é um usuário da PLING. Informe sua senha para prosseguirmos.</p>
+            <p ng-if="createAccount" class="info">Ela deve conter no mínimo 6 caracteres, misturando letras e números</p>
+
+            <div class="form-container">
+
+                <div class="row">
+                    <div ng-class="{'col-md-offset-2 col-md-4' : createAccount, 'col-md-offset-3 col-md-6' : !createAccount}">
+                        <div class="material-input" ng-if="createAccount">
+                            <input md-input="Sua senha" type="password" name="pwd" ng-model="login.pwd"
+                                required ng-pattern="/(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])*[A-Za-z\d$@$!%*#?&]{6,20}/" plg-auto-focus="pwdAutoFocus">
+                            <plg-password-strength password="login.pwd"></plg-password-strength>
+                        </div>
+                        <div class="material-input" ng-if="!createAccount">
+                            <input md-input="Sua senha" type="password" name="pwd" ng-model="login.pwd" required plg-auto-focus="pwdAutoFocus">
+                        </div>
+                    </div>
+                    <div class="col-md-offset-1 col-md-4" ng-if="createAccount">
+                        <div class="material-input">
+                            <input md-input="Confirme sua senha" type="password" name="confPwd" ng-model="login.confPwd" required ng-pattern="/(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])*[A-Za-z\d$@$!%*#?&]{6,20}/">
+                        </div>
+                    </div>
+                </div>
+                <div class="row inline-err" ng-class="{'inline-err-pass' : createAccount}">
+                    <p ng-class="{'col-md-offset-2' : createAccount, 'col-md-offset-3' : !createAccount}" style="padding-left: 5px;">
+                    <p class="input-error" ng-show="createAccount && loginForm.pwd.$invalid && !loginForm.pwd.$pristine && loginForm.pwd.$touched" class="help-block">Sua senha deve conter no mínimo 6 caracteres, misturando letras e números.</p>
+                    <p class="input-error" ng-show="loginErrorMessage">Esta senha não corresponde ao login informado.</p>
+                    <p class="input-error" ng-show="login.pwd !== login.confPwd && loginForm.confPwd.$touched && !loginForm.pwd.$invalid" class="help-block">Senhas informadas não conferem.</p>
+                </div>
+            </div>
+        </form>
+
+        <!--Dados basicos-->
+        <form name="customerForm" key-enter="formSimpleSubmit(customerForm);" novalidate ng-show="index === 2" style="width: 720px">
+            <h2>Dados básicos</h2>
+
+            <p ng-if="!customer._id" class="info">Estas informações são necessárias para que possamos emitir a nota fiscal eletrônica da contratação que está sendo realizada.</p>
+            <p ng-if="customer._id" class="info">Identificamos, pelo usuário e senha informados, que você já possui uma conta ativa na PLING. Confirme seus dados ou corrija-os caso estejam equivocados.</p>
+                
+            <div class="form-container">
+
+                <div class="row col-md-offset-1 col-md-10">
+                    <div class="col-md-12">
+                        <div class="material-input">
+                            <input md-input="Seu nome ou de sua empresa" type="text" name="name" plg-auto-focus="customerNameAutoFocus" ng-model="customer.name" ng-minlength="3" ng-maxlength="50" required>
+                            <p class="input-error" ng-show="customerForm.name.$invalid && customerForm.name.$touched" class="help-block">Campo obrigatório ou Mínimo de 3 e máximo de 50 caracteres.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row col-md-offset-1 col-md-10">
+                    <div class="col-md-4">
+                        <div class="material-input">
+                            <input md-input="Seu CPF ou CNPJ" type="text" required name="cpfCnpj" ng-model="customer.cpfCnpj" ui-br-cpfcnpj-mask >
+                            <p class="input-error" ng-show="customerForm.cpfCnpj.$error.cpf && customerForm.cpfCnpj.$touched" class="help-block">CPF inválido.</p>
+                            <p class="input-error" ng-show="customerForm.cpfCnpj.$error.cnpj && customerForm.cpfCnpj.$touched" class="help-block">CNPJ inválido.</p>
+                            <p class="input-error" ng-show="customerForm.cpfCnpj.$error.required && customerForm.cpfCnpj.$touched" class="help-block">Campo obrigatório.</p>                 
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="material-input">
+                            <input md-input="Seu telefone celular" name="phone" ng-model="customer.phone"
+                                ui-mask="(99) 9999-9999?9" ui-mask-placeholder ui-mask-placeholder-char placeholder="{{customerForm.phone.$viewValue ? '_' : ''}}" required>
+                            <p class="input-error" ng-show="customerForm.phone.$invalid && customerForm.phone.$touched" class="help-block">Campo obrigatório.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="material-input">
+                            <input md-input="Telefone adicional" name="phoneTwo" ng-model="customer.phoneTwo" ui-mask="(99) 9999-9999?9" ui-mask-placeholder ui-mask-placeholder-char placeholder="{{customerForm.phoneTwo.$viewValue ? '_' : ''}}">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+        <!--Dados complementares-->
+        <form name="customerComplementForm" key-enter="formSimpleSubmit(customerComplementForm);" novalidate ng-show="index === 3" style="width: 720px">
+            <h2>Seu endereço</h2>
+
+            <p ng-if="!customer._id" class="info">Estas informações são necessárias para que possamos emitir a nota fiscal eletrônica da contratação que está sendo realizada.</p>
+            <p ng-if="customer._id" class="info">Identificamos, pelo usuário e senha informados, que você já possui uma conta ativa na PLING. Confirme seus dados ou corrija-os caso estejam equivocados.</p>
+
+            <div class="form-container">
+                <div class="row">
+                    <div class=" col-md-offset-1 col-md-2">
+                        <div class="material-input">
+                            <input md-input="CEP" name="postalCode" ng-model="customer.postalCode" ng-change="getCep(customer.postalCode, customer)" plg-auto-focus="cepAutoFocus"
+                            ui-mask="99999-999" ui-mask-placeholder ui-mask-placeholder-char placeholder="{{customerComplementForm.postalCode.$viewValue ? '_' : ''}}">
+                            <p class="input-error" ng-show="customerComplementForm.postalCode.$invalid && customerComplementForm.postalCode.$touched">CEP inválido.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class=" col-md-offset-1 col-md-6">
+                        <div class="material-input">
+                            <input md-input="Endereço" type="text" required name="address" ng-model="customer.address" ng-class="{'input-loading' : isCepLoading}">
+                            <p class="input-error" ng-show="customerComplementForm.address.$invalid && !customerComplementForm.address.$pristine">Endereço incorreto.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="material-input">
+                            <input md-input="Numero" name="number" type="text" ng-model="customer.addressNumber" ui-mask="9?9?9?9?9?9?9?9" ui-mask-placeholder ui-mask-placeholder-char="space">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="material-input">
+                            <input md-input="Complemento" name="addressComplement" ng-model="customer.addressComplement">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-offset-1 col-md-3">
+                        <div class="material-input">
+                            <input md-input="Bairro" required name="neighborhood" ng-model="customer.neighborhood" ng-class="{'input-loading' : isCepLoading}">
+                        </div>
+                    </div>
+                    <div class=" col-md-3">
+                        <div class="material-input">
+                            <input md-input="Cidade" required name="city" ng-model="customer.city" ng-class="{'input-loading' : isCepLoading}">
+                        </div>
+                    </div>
+                    <div class=" col-md-4">
+                        <div class="material-input">
+                            <select md-input="Estado" required ng-model="customer.state" ng-class="{'input-loading' : isCepLoading}">
+                                <option ng-repeat="st in states" value="{{st.uf}}">{{st.name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!--Pagamento-->
+        <form name="paymentForm" key-enter="formSimpleSubmit(paymentForm);" novalidate ng-show="index === 4" style="width: 720px">
+            <h2>Pagamento</h2>
+
+            <p class="info">
+                Escolha a forma de pagamento e informe os dados de seu cartão de crédito. Somente são aceitos pagamentos através de cartão de crédito (Visa, MasterCard, Diners Club e Elo).
+            </p>
+
+            <p class="info">{{ product.pricing.description }}</p>
+
+            <div class="form-container">
+                
+                <div class="row">
+                    <div class=" col-md-offset-1 col-md-3">
+                        <div class="material-input">
+                            <select md-input="Forma de Pagamento" name="payConditions" required  ng-model="paymentProfile.installments"
+                                required ng-class="{'input-gray' : !paymentProfile.installments}" plg-auto-focus="paymentAutoFocus">
+                                <option ng-repeat="ins in getInstallmentNumber(product.pricing.installments)" value="{{ins}}">{{ (ins) > 1 ? ins + ' vezes' : 'À vista' }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-offset-1 col-md-3">
+                        <div class="material-input">
+                            <input md-input="Número do cartão" name="cardNumber" ng-model="paymentProfile.cardNumber" card-validator="number" plg-auto-focus="cardNumberFocus"
+                            required ui-mask="9999 9999 9999 9?9?9?9" ui-mask-placeholder ui-mask-placeholder-char placeholder="{{paymentForm.cardNumber.$viewValue ? '_' : ''}}">
+                            <p class="input-error" ng-show="paymentForm.cardNumber.$invalid && paymentForm.cardNumber.$touched">Número do cartão inválido.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <div class="material-input">
+                            <input md-input="Nome impresso no cartão" autocomplete="off" ng-change="paymentProfile.cardName=paymentProfile.cardName.toUpperCase();" name="cardName" ng-model="paymentProfile.cardName" ng-minlength="1" ng-maxlength="100" required>
+                        </div>
+                    </div>
+                
+                    <div class="col-md-1">
+                        <div class="material-input">
+                            <input md-input="Validade" name="validDate" class=" input-item" ng-model="paymentProfile.validDate" ui-mask="99/99" card-validator="date" ui-mask-placeholder ui-mask-placeholder-char placeholder="{{paymentForm.validDate.$viewValue ? '_' : ''}}"/>
+                            <p class="input-error" ng-show="paymentForm.validDate.$invalid && paymentForm.validDate.$touched">Validade inválida.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-1">
+                        <div class="material-input">
+                            <input md-input="CVV" type="password" ng-model="paymentProfile.cvv" required ng-minlength="3" ng-maxlength="3" maxlength="3">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+        <!--Resumo-->
+        <div ng-show="index === 5" style="width: 720px;">
+            <h2>Resumo do pedido</h2>
+
+            <p class="info">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque laoreet velit</p>
+
+            <div class="form-container">
+                
+                <div class="row col-md-offset-1 col-md-10">
+                    <div class="col-md-6">
+                        <div class="material-input">
+                            <input class="input-item hasValue" value="{{customer.name}}" disabled>
+                            <label>Nome</label>
+                            <span class="bar"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="material-input">
+                            <input class="input-item hasValue" value="{{customer.cpfCnpj}}" disabled>
+                            <label>{{ customer.cpfCnpj.length < 12 ? 'CPF' : 'CNPJ' }} </label>
+                            <span class="bar"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row col-md-offset-1 col-md-10">
+                    <div class="col-md-6">
+                        <div class="material-input">
+                            <input class="input-item hasValue" value="{{product.name}}" disabled>
+                            <label>Produto</label>
+                            <span class="bar"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="material-input">
+                            <input class="input-item hasValue" value="{{product.pricing.price + ' - ' + paymentProfile.installments + 'x'}}" disabled>
+                            <label>Valor</label>
+                            <span class="bar"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row col-md-offset-1 col-md-10">
+                    <div class="col-md-6">
+                        <div class="material-input">
+                            <input class="input-item hasValue" value="XXXX.XXXX.XXXX.{{paymentProfile.cardNumber.substr(12, 4)}}" disabled>
+                            <label>Cartão</label>
+                            <span class="bar"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Finalizado-->
+        <div ng-show="index === 6" style="width: 720px">
+            <h2>{{responseMessage}}</h2>
+            <p class="info">{{responseText}}</p>
+        </div>
+    </div>
+    
+</div>
+
+<div class="dialog-footer" ng-hide="isLoading">
+    <div ng-if="index === 0">
+        <button type="button" md-button ng-click="checkEmail(login.email);" ng-disabled="emailForm.$invalid">Avançar</button>
+    </div>
+
+    <div ng-if="index === 1">
+        <button type="button" class="md-button md-primary" ng-click="prevStep(loginForm); clearInputs();">Voltar</button>
+        <button ng-if="createAccount" type="button" class="md-button md-primary" ng-click="formSimpleSubmit(); savePwd(login);" ng-disabled="loginForm.$invalid || (login.pwd !== login.confPwd && createAccount)">Avançar</button>
+        <button ng-if="!createAccount" type="button" class="md-button md-primary" ng-click="loginUser(login)" ng-disabled="loginForm.$invalid">Avançar</button>
+    </div>
+
+    <div ng-if="index === 2">
+        <button type="button" class="md-button md-primary" ng-click="prevStep(customerForm)">Voltar</button>
+        <button type="button" class="md-button md-primary" ng-click="formSimpleSubmit(customerForm);" ng-disabled="customerForm.$invalid">Avançar</button>
+    </div>
+
+    <div ng-if="index === 3">
+        <button type="button" class="md-button md-primary" ng-click="prevStep(customerComplementForm);">Voltar</button>
+        <button type="button" class="md-button md-primary" ng-click="formSimpleSubmit(customerComplementForm);" ng-disabled="customerComplementForm.$invalid">Avançar</button>
+    </div>
+
+    <div ng-if="index === 4">
+        <button type="button" class="md-button md-primary" ng-click="prevStep(paymentForm);">Voltar</button>
+        <button type="button" class="md-button md-primary" ng-disabled="paymentForm.$invalid;" ng-click="formSimpleSubmit(paymentForm)">Avançar</button>
+    </div>
+
+    <div ng-if="index === 5">
+        <button type="button" class="md-button md-primary" ng-click="prevStep()">Voltar</button>
+        <button type="button" class="md-button md-primary" ng-click="sendPayment(customer, paymentProfile, product)">Contratar</button>
+    </div>
+
+    <div ng-if="index === 6">
+        <button type="button" class="md-button md-primary" ng-if="!showError" ng-hide="paymentError" ng-click="redirectToPanel()">Acessar painel</button>
+        <button type="button" class="md-button md-primary" ng-if="!showError" ng-show="paymentError" ng-click="tryAgain(paymentProfile)">Tentar novamente</button>
+        <button type="button" class="md-button md-primary" ng-if="showError" ng-click="close();">OK</button>
+    </div>
+</div>
