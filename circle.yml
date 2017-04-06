@@ -6,7 +6,7 @@ deployment:
   staging:
     branch: production
     codedeploy:
-      coreapi-deploy:
+      website-deploy:
         deployment_group: production-instances
         application_root: /
         revision_location:
