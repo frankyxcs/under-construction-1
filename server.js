@@ -1,5 +1,5 @@
 var
-    port        = process.env.PORT || 80, // eslint-disable-line
+    port        = process.env.PORT || 8080, // eslint-disable-line
     directory   = '.',
     express     = require('express'),
     compression = require('compression'),

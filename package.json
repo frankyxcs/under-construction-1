@@ -13,9 +13,9 @@
   "scripts": {
     "test": "node_modules/gulp/bin/gulp.js test",
     "clean": "node_modules/gulp/bin/gulp.js clean",
-    "build": "node_modules/gulp/bin/gulp.js build --business",
+    "build": "node_modules/gulp/bin/gulp.js build",
     "release": "node_modules/gulp/bin/gulp.js release",
-    "dev": "node_modules/gulp/bin/gulp.js dev --business",
+    "dev": "node_modules/gulp/bin/gulp.js dev",
     "bower": "bower install --allow-root",
     "start": "NODE_ENV=production pm2 start server.js --name \"pling.net.br\""
   },
