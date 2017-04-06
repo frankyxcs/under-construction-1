@@ -17,7 +17,7 @@
     "release": "node_modules/gulp/bin/gulp.js release",
     "dev": "node_modules/gulp/bin/gulp.js dev",
     "bower": "bower install --allow-root",
-    "start": "NODE_ENV=production pm2 start server.js --name \"pling.net.br\""
+    "start": "NODE_ENV=development pm2 start server.js --name \"pling.net.br\""
   },
   "repository": {
     "type": "git",
