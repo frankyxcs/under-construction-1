@@ -13,6 +13,6 @@ deployment:
           revision_type: S3
           s3_location:
             bucket: pling-codedeploy
-            key_pattern: app-core-prod-{SHORT_COMMIT}-{BUILD_NUM}
+            key_pattern: app-plingnetbr-prod-{SHORT_COMMIT}-{BUILD_NUM}
         region: us-east-1
         deployment_config: CodeDeployDefault.AllAtOnce
