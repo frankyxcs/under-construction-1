@@ -1,6 +1,6 @@
 {
   "name": "pling-site",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Pling site",
   "main": "server.js",
   "author": "Pling <contato@pling.net.br>",
@@ -17,7 +17,7 @@
     "release": "node_modules/gulp/bin/gulp.js release",
     "dev": "node_modules/gulp/bin/gulp.js dev --business",
     "bower": "bower install --allow-root",
-    "start": "NODE_ENV=development pm2 start server.js --name \"pling.net.br\""
+    "start": "NODE_ENV=production pm2 start server.js --name \"pling.net.br\""
   },
   "repository": {
     "type": "git",
