@@ -11,6 +11,7 @@ bower.json                    merge=ours
 server.js                     merge=ours
 readme.md                     merge=ours
 app/components/home/home.html merge=ours
+.gitignore                    merge=ours
 
 ## SOURCE CODE
 *.bat    text

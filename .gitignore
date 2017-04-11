@@ -2,6 +2,10 @@
 node_modules
 vendor
 
+# Code Deploy + CircleCI
+circle.yml
+appspec.yml
+
 # Mac files
 .DS_Store
 

@@ -1,13 +1,11 @@
 {
-    "core_url"        : "http://api-dev.pling.net.br:5000/api/",
-    "local_core_url"  : "http://localhost:5000/api/",
+    "core_url"        : "https://api.pling.net.br/api/",
     "def_api_version" : "v1",
     "auth"            : false,
-    "environment"     : "development",
+    "environment"     : "production",
     "onRun"           : {
         "cacheViews": true
     },
-    "current_business" : "arquitetura",
     "facebook" : {
         "psicologia"  : "http://www.facebook.com/Universo-da-Psicologia-964507027042619/",
         "odontologia" : "http://www.facebook.com/Universo-da-Odontologia-1515438698482657/",
