@@ -18,6 +18,11 @@
                 'reloadOnSearch' : false
             })
 
+            .when('/quem-somos', {
+                'templateUrl'    : 'app/components/quem-somos/quemsomos.html',
+                'reloadOnSearch' : false
+            })
+
             .otherwise({
                 'redirectTo': '/'
             });

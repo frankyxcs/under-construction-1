@@ -6,3 +6,49 @@
     position: relative;
     transform: translateY( calc(-50% + 78px));
 }
+
+.quem-somos {
+  color: #fff;
+  background: url(../img/fundo_quem_somos.jpg) no-repeat top center scroll;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  background-size: cover;
+  -o-background-size: cover;
+}
+
+.quem-somos .container {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.quem-somos .row {
+    
+}
+
+.quem-somos h2 {
+    font-size: 34px;
+}
+
+.quem-somos h2 ~ p {    
+    font-size: 26px;
+}
+
+#social, #sobre, #contato, #trabalhos {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+}
+
+@media (max-device-width: 450px) {
+    .quem-somos h2 ~ p {    
+        font-size: 24px;
+    }
+}

@@ -32,6 +32,57 @@
 
         <!-- DYNAMIC CONTENT -->
         <div class="dynamic-content">
+            <!-- Navigation -->
+            <nav class="navbar navbar-custom navbar-fixed-top" role="navigation" navbar-animation>
+                <div class="container container-nav">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-main-collapse">
+                            Menu <i class="fa fa-bars"></i>
+                        </button>
+                        <a class="navbar-brand logo-pling page-scroll" href="#home" ng-click="goTo('/')">
+                            <img src="dist/assets/img/logo_pling_site.jpg">
+                        </a>
+                    </div>
+
+                    <div class="collapse navbar-collapse navbar-right navbar-main-collapse">
+                        <ul class="nav navbar-nav">
+                            <li>
+                                <a class="page-scroll" href="#inicio" ng-click="goTo('/')">Início</a>
+                            </li>
+                            <li>
+                                <a class="page-scroll" href="#perfil" ng-click="goTo('/')">Perfil</a>
+                            </li>
+                            <li>
+                                <a class="page-scroll" href="#compromisso" ng-click="goTo('/')">Compromisso social</a>
+                            </li>
+                            <li>
+                                <a class="page-scroll" href="#trabalhe" ng-click="goTo('/')">Trabalhe conosco</a>
+                            </li>
+                                                      <li>
+                                <a class="page-scroll" href="#contato" ng-click="goTo('/')">Contato</a>
+                            </li>
+                            <li>
+                                <div class="media-link color">                
+                                    <a class="navbar-brand logo-facebook" ng-href="{{medias.facebook}}" target="_blank">
+                                        <img src="dist/assets/img/logo_facebook.jpg">
+                                    </a>
+                                    <a class="navbar-brand logo-twitter" ng-href="{{medias.twitter}}" target="_blank">
+                                        <img src="dist/assets/img/logo_twitter.png">
+                                    </a>
+                                </div>
+                                <div class="media-link white">
+                                    <a class="navbar-brand logo-facebook" ng-href="{{medias.facebook}}" target="_blank">
+                                        <img src="dist/assets/img/logo_facebook_white.png">
+                                    </a>
+                                    <a class="navbar-brand logo-twitter" ng-href="{{medias.twitter}}" target="_blank">
+                                        <img src="dist/assets/img/logo_twitter_white.png">
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
             <ng-view/>
         </div>
 
