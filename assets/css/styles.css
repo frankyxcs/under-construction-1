@@ -255,7 +255,7 @@ h6,
 
 h1,
 .h1 {
-  font-size: 36px;
+  font-size: 35px;
 }
 h2,
 .h2 {
@@ -2485,7 +2485,6 @@ h4,
 h5,
 h6 {
   margin: 0 0 35px;
-  text-transform: uppercase;
   font-family: "roboto",sans-serif;
   font-weight: 700;
   letter-spacing: 1px;
@@ -2547,7 +2546,7 @@ a:focus {
   -moz-transition: background 0.3s ease-in-out;
   transition: background 0.3s ease-in-out;
   text-transform: none;
-  font-size: 16px;
+  font-size: 14px;
 }
 .navbar-custom .nav li a:hover {
   color: rgba(255, 255, 255, 0.8);
@@ -2641,9 +2640,6 @@ a:focus {
   }
 }
 @media (min-width: 1025px) {
-  .navbar-custom li {
-    margin-left: 33px;
-  }
 }
 .intro {
   display: table;
@@ -2652,7 +2648,6 @@ a:focus {
   padding: 100px 0;
   text-align: center;
   color: white;
-  background: url(../img/fundo_01.jpg) no-repeat top center scroll;
   background-color: rgba(147, 130, 103, 0.9);
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -2666,6 +2661,11 @@ a:focus {
 }
 .intro .intro-body .brand-heading {
   font-size: 40px;
+}
+.intro-text {
+  font-family: roboto-condensed,sans-serif !important;
+  font-weight: 700 !important;
+}
 }
 .intro .intro-body .intro-text {
   font-size: 18px;
@@ -2695,8 +2695,9 @@ a:focus {
 }
 .btn-rectangle {
   margin-top: 15px;
-  padding: 18px 30px;
+  padding: 16px 0;
   border: 1px solid white;
+  width: 130px;
 
   color: white;
   text-transform: none !important;
@@ -2706,7 +2707,7 @@ a:focus {
   transition: background 0.3s ease-in-out;
 
   font-size: 16px;
-  height: 60px;
+  height: 55px;
 }
 .btn-rectangle:hover,
 .btn-rectangle:focus {
@@ -3057,7 +3058,7 @@ body {
 .lg-container p {
   font-family: roboto-condensed,sans-serif;
   font-weight: 300;
-  font-size: 26px;
+  font-size: 22px;
 }
 
 @media (max-width: 767px) {
@@ -3719,4 +3720,18 @@ select:-webkit-autofill:focus {
 }
 .text-white {
   color: rgba(255, 255, 255, 0.74);
+}
+.fundo-pling:before {
+    content: ' ';
+    display: block;
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: .9;
+    background: url(../img/fundo_pling.jpg) no-repeat top center scroll;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
 }

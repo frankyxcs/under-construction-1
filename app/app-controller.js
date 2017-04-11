@@ -5,19 +5,33 @@
     MainController.$inject = [
         '$scope', '$rootScope', '$timeout',
         '$location', '$window', 'coreApiService',
-        'httpHelperService'
+        'httpHelperService', 'modalService'
     ];
 
     // registering on angular
     angular.module('plingSiteApp').controller('MainController', MainController);
 
     // Main Controller
-    function MainController($scope, $rootScope, $timeout, $location, $window, core, $mdToast, httpHelperService) {
+    function MainController($scope, $rootScope, $timeout, $location, $window, core, httpHelperService, modalService) {
 
         // store the url to redirect later in case the user comes from other domain
         $rootScope.isAppLoaded  = false;
         $rootScope.loadingLayer = false;
         $rootScope.isAppLoading = true;
+
+        $rootScope.openContactModal = function() {
+
+            modalService.showModal({
+                'templateUrl' : 'contato.html',
+                'controller'  : 'ContatoController'
+            }).then(function(modal) {
+                modal.show();
+                $scope.isDisabledHire = true;
+                modal.closed.then(function() {
+                    $scope.isDisabledHire = false;
+                });
+            });
+        };
 
         // Route change
         $rootScope.$on('$routeChangeStart', function () {
@@ -44,6 +58,7 @@
         });
 
         $rootScope.goTo = function (path) {
+            if ($location.$$path === path) return;
             $location.path(path);
         };
 
