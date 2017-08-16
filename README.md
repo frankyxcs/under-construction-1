@@ -1,8 +1,6 @@
-# pling.net.br
+# Pling Website
 
-> Aplicação destinada ao site da pling
-
-* https://pling.net.br
+![image](https://user-images.githubusercontent.com/205932/29378840-eda733a8-8296-11e7-9cb4-4563a485d035.png)
 
 ### Configurando o ambiente de desenvolvimento
 
