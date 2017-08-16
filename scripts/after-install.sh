@@ -8,6 +8,3 @@ sudo npm install --loglevel=error
 
 # Generates Dist
 sudo npm run build
-
-# Install client dependencies
-sudo npm run bower
