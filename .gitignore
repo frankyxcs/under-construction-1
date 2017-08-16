@@ -1,10 +1,5 @@
 # Dependency directory
 node_modules
-vendor
-
-# Code Deploy + CircleCI
-circle.yml
-appspec.yml
 
 # Mac files
 .DS_Store
@@ -15,9 +10,6 @@ jsconfig.json
 
 # Logs
 npm-debug.*
-
-# Release Files
-dist
 
 #build
 build

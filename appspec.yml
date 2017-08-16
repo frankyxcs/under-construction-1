@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+files:
+   - source: /
+     destination: /var/www/mercados
+hooks:
+   BeforeInstall:
+    - location: scripts/before-install.sh
+      runas: root
+      timeout: 120
+   AfterInstall:
+    - location: scripts/after-install.sh
+      runas: root
+      timeout: 240
+   ValidateService:
+    - location: scripts/validate-service.sh
+      runas: root
+      timeout: 120

@@ -1,0 +1,18 @@
+machine:
+  node:
+    version: 6.11.0
+
+deployment:
+  staging:
+    branch: master
+    codedeploy:
+      website-deploy:
+        deployment_group: production-instances
+        application_root: /
+        revision_location:
+          revision_type: S3
+          s3_location:
+            bucket: pling-codedeploy
+            key_pattern: app-website-prd-{SHORT_COMMIT}-{BUILD_NUM}
+        region: us-east-1
+        deployment_config: CodeDeployDefault.AllAtOnce

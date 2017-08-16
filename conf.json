@@ -14,11 +14,11 @@
         "nutricao"    : "http://www.facebook.com/Universo-da-Nutricao-359638754390683/"
     },
     "twitter" : {
-        "psicologia" : "http://twitter.com/UnivPsicologia",
+        "psicologia"  : "http://twitter.com/UnivPsicologia",
         "odontologia" : "http://twitter.com/UnivOdontologia",
-        "medicina" : "http://twitter.com/UnivMedicina",
-        "arquitetura": "http://twitter.com/UnivArquitetura",
-        "nutricao" : "http://twitter.com/UnivNutricao"
+        "medicina"    : "http://twitter.com/UnivMedicina",
+        "arquitetura" : "http://twitter.com/UnivArquitetura",
+        "nutricao"    : "http://twitter.com/UnivNutricao"
     }
 }
 
