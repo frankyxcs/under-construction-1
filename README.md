@@ -23,34 +23,26 @@ cd blog
 npm install
 ```
 
-### Passo 4: Instalar dependências globais do projeto
-Para facilitar sua vida, você pode instalar os seguintes CLIs.
-
-Gulp:
-```
-npm install gulp -g
-```
-
-Bower:
-```
-npm install bower -g
-```
-
-### Passo 5: Rodar projeto
+### Passo 4: Rodar projeto
 Utilizando o Gulp você pode inicializar o projeto da seguinte forma
 
 ``` sh
-gulp clean
-gulp dev
+# Modo Desenvolvimento
+npm run dev
+```
+
+``` sh
+# Modo PRD
+npm start
 ```
 
 ### Tarefas automatizadas do Gulp
 
-* __gulp test__    : roda o eslint para validar o código.
-* __gulp clean__   : limpa a pasta dist.
-* __gulp build__   : gera os arquivos dist.
-* __gulp release__ : cria o arquivo tar.gz contendo todo o projeto dentro da pasta "release".
-* __gulp dev__     : roda o projeto e levanta live-reload na porta configurada no gulpfile.js.
+* __npm run test__    : roda o eslint para validar o código.
+* __npm run clean__   : limpa a pasta dist.
+* __npm run build__   : gera os arquivos dist.
+* __npm run release__ : cria o arquivo tar.gz contendo todo o projeto dentro da pasta "release".
+* __npm run dev__     : roda o projeto e levanta live-reload na porta configurada no gulpfile.js.
 
 
 ## Termos & Licença
