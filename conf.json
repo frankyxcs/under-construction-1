@@ -1,8 +1,8 @@
 {
-    "core_url"        : "https://api-hml.pling.net.br/api/",
+    "core_url"        : "http://api-dev.pling.net.br/api/",
     "def_api_version" : "v1",
     "auth"            : false,
-    "environment"     : "homolog",
+    "environment"     : "development",
     "onRun"           : {
         "cacheViews": true
     },

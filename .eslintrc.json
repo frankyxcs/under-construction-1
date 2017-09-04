@@ -32,7 +32,11 @@
         "FileReader": true,
         "File"      : true,
         "moment"    : true,
-        "alert"     : true
+        "alert"     : true,
+        "process"   : true,
+        "__dirname" : true,
+        "module"    : true,
+        "console"   : true
     },
 
     "env": {
@@ -51,7 +55,7 @@
         "guard-for-in"               : 0,
         "no-unused-expressions"      : 0,
 
-        "no-console"                 : 1,
+        "no-console"                 : 0,
         "no-debugger"                : 1,
         "no-constant-condition"      : 1,
         "no-empty"                   : 1,
@@ -123,7 +127,6 @@
         "no-trailing-spaces"         : 2,
         "operator-assignment"        : 2,
         "operator-linebreak"         : 2,
-        "quote-props"                : 2,
         "quotes"                     : [ 2, "single" ],
         "semi-spacing"               : 2,
         "semi"                       : 2,

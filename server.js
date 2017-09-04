@@ -1,30 +1,37 @@
-var
-    port        = process.env.PORT || 8080, // eslint-disable-line
-    directory   = '.',
-    express     = require('express'),
-    compression = require('compression'),
-    serveStatic = require('serve-static'),
-    app         = express();
+// Configure Environment
+require('dotenv').config();
 
-app.use(compression({ 'filter' : shouldCompress }));
+// Web Server Dependencies
+const port        = process.env.PORT || 8080;
+const directory   = '.';
+const express     = require('express');
+const serveStatic = require('serve-static');
+const app         = express();
+const compression = require('compression');
 
-function shouldCompress (req, res) {
-    if (req.headers['x-no-compression']) {
-    // don't compress responses with this request header
-        return false;
-    }
-
-    // fallback to standard filter function
-    return compression.filter(req, res);
-}
-
+// Static Serve
 app.use(serveStatic(directory, {'index': [ 'index.html' ]}));
 
-app.use((req, res) => {
-    res.sendFile(`${__dirname}/index.html`); // eslint-disable-line
-});
+// GZIP Compressor
+app.use(compression({
+    'filter' : (req, res) => {
 
+        // don't compress responses with this request header
+        if (req.headers['x-no-compression']) {
+            return false;
+        }
+
+        // fallback to standard filter function
+        return compression.filter(req, res);
+    }
+}));
+
+// Return index.html
+app.use((req, res) => { res.sendFile(`${__dirname}/index.html`); });
+
+// Port Listen
 app.listen(port);
 
-console.log(`Marca Profissional rodando na porta ${port}`); // eslint-disable-line
-exports = module.exports = app;                             // eslint-disable-line
+// Welcome Msg
+console.log(`pling.net.br rodando na porta ${port}`);
+exports = module.exports = app;
