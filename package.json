@@ -16,7 +16,7 @@
     "build": "node node_modules/gulp/bin/gulp.js build",
     "release": "node node_modules/gulp/bin/gulp.js release",
     "dev": "node node_modules/gulp/bin/gulp.js dev",
-    "start": "NODE_ENV=development pm2 start server.js --name \"pling.net.br\""
+    "start": "pm2 start server.js --name \"pling.net.br\""
   },
   "repository": {
     "type": "git",
