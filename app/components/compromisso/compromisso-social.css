@@ -1,0 +1,116 @@
+.trending-icon > svg {
+    height      : 15px;
+    padding-top : 2px;
+}
+
+
+.up > svg {
+    fill: #387C2C;
+}
+
+.down > svg {
+    fill: #DD4B39;
+}
+
+.social-comp-table-row td {
+    color: #656565;
+}
+
+.md-datepicker-input-container {
+    width: 100%;
+    margin-left: 0px;
+}
+
+.per-status-donation-collapse > svg {
+    fill: #5d5d5d;
+    transition : all 0.2s ease-in-out;
+    transform: rotate(90deg);
+}
+
+.rotate180 {
+    display: inline-block;
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
+    -webkit-transition: all linear 200ms;
+    transition: all linear 200ms;
+}
+
+.rotate-back {
+    display: inline-block;
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+    -webkit-transition: all linear 200ms;
+    transition: all linear 200ms;
+}
+
+.ellapsed-size {
+    height: 23.3vh;
+}
+
+.collapsed-size {
+    height: 7vh !important;
+}
+
+/* Icone Row Card */
+.icon-card-cell-value svg {
+    fill    : rgba(125, 195, 255, 0.7);
+    padding : 0;
+}
+
+.check-padding-top {
+    padding-top: 10px;
+}
+
+/* Icone Row Boleto */
+.icon-bill-cell-value svg {
+    fill    : rgba(125, 195, 255, 0.7);
+    padding : 0;
+}
+
+.status-cell {
+    text-align: center;
+}
+
+.status-cell-value {
+    padding          : 5px 6px;
+    font-size        : 12px;
+    font-weight      : 600;
+    line-height      : 1;
+    text-transform   : lowercase;
+    border-radius    : 2px;
+    box-shadow       : inset 0 -1px 0 rgba(27,31,35,0.12);
+}
+
+.status-cell-value-confirmed {
+    text-transform: lowercase;
+    background-color : #c6e2cc !important;
+    color            : #309c40 !important;
+}
+
+.status-cell-value-pending {
+    text-transform: lowercase;
+    background-color : #f4d7c9 !important;
+    color            : #e66e33 !important;
+}
+
+.status-cell-value-donated {
+    text-transform: lowercase;
+    background-color : #c9e3f9 !important;
+    color            : #1165AE !important;
+}
+
+.status-cell-value-pendent {
+    background-color: #c6e2cc;
+    padding: 3px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    text-transform: lowercase;
+    color: #309c40;
+    border-radius: 2px;
+    box-shadow: inset 0 -1px 0 rgba(27,31,35,0.12);
+}
+
+.filter-panel {
+    transition : all 0.2s ease-in-out
+}

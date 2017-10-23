@@ -3735,3 +3735,51 @@ select:-webkit-autofill:focus {
     background-size: cover;
     -o-background-size: cover;
 }
+
+/*TABLE*/
+.table-container {
+  background-color: #FFFFFF;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 2px 1px -1px rgba(0,0,0,.12);
+}
+.table-container tbody > tr {
+  cursor: pointer;
+}
+.table-container .md-table-pagination md-select {
+  min-width: 38px !important;
+}
+.table-container .md-table-pagination {
+  padding: 0 110px !important;
+}
+
+.limit-select .label {
+  color: rgba(0,0,0,.54) !important;
+}
+
+.buttons .label {
+  color: rgba(0,0,0,.54) !important;
+}
+
+.table-container .remove-pagination > span:nth-of-type(3) {
+  display: none !important;
+}
+
+.table-row th {
+  padding: 0 20px 0 0 !important;
+}
+
+.table-row td {
+  padding: 0 20px 0 0 !important;
+}
+
+.th-customer_name,
+.th-contract_id {
+  min-width : 180px !important;
+}
+
+.th-min {
+  min-width : 80px !important;
+}
+
+.th-action {
+  width : 10px !important;
+}

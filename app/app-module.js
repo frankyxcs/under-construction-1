@@ -4,11 +4,15 @@
     // Module dependencies injection
     angular.module('plingSiteApp', [
         'plingUiLite',
+        'ngMaterial',
+        'ngAnimate',
+        'md.data.table',
         'plingSiteApp.templates',
         'ngRoute',
         'angular-carousel',
         'ui.mask',
-        'ui.utils.masks'
+        'ui.utils.masks',
+        'chart.js'
     ])
 
         .config(function ($compileProvider) {

@@ -4,11 +4,15 @@
     // Module dependencies injection
     angular.module('plingSiteApp', [
         'plingUiLite',
+        'ngMaterial',
+        'ngAnimate',
+        'md.data.table',
         'plingSiteApp.templates',
         'ngRoute',
         'angular-carousel',
         'ui.mask',
-        'ui.utils.masks'
+        'ui.utils.masks',
+        'chart.js'
     ])
 
         .config(function ($compileProvider) {
@@ -102,7 +106,8 @@
             })
 
             .when('/compromisso-social', {
-                'templateUrl'    : 'app/components/compromisso/compromisso.html',
+                'templateUrl'    : 'app/components/compromisso/compromisso-social.html',
+                'controller'     : 'CompromissoSocialController',
                 'reloadOnSearch' : false
             })
 
@@ -117,6 +122,540 @@
 
         $locationProvider.html5Mode(true);
 
+    }
+}());
+
+(function () {
+
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .controller('CompromissoSocialController', CompromissoSocialController);
+
+    CompromissoSocialController.$inject = [
+        '$rootScope', '$scope', 'socialCompromiseService', 'socialCompromiseFactory', 'coreApiService', '$mdPanel', '$mdSidenav'
+    ];
+
+    function CompromissoSocialController($rootScope, $scope, socialCompromiseService, socialCompromiseFactory, coreApiService, $mdPanel, $mdSidenav) {
+
+        /**
+         * TBD
+         * @returns {donations} TBD.
+         */
+        function getSortArray() {
+            var direction = 1;
+            var field = $scope.tableOptions.order;
+
+            if (!$scope.tableOptions.order)
+                return [];
+
+            if ($scope.tableOptions.order.substr(0, 1) === '-') {
+                direction = -1;
+                field = $scope.tableOptions.order.substr(1);
+            }
+
+            return [{'key' : field, 'order' : direction}];
+        }
+
+        /**
+         * TBD
+         * @param {number} currentMonth - Mês corrente
+         * @param {number} currentYear - Ano corrente
+         * @returns {donations} TBD.
+         */
+        function setDefaultTableOptions(currentMonth, currentYear) {
+
+            $scope.tableOptions = {
+                'page'         : 1,
+                'total'        : 0,
+                'limitOptions' : [ 5, 10, 15, 25, 50, 100 ],
+                'limit'        : 10,
+                'order'        : 'createdAt',
+
+                // Mes corrente
+                'filters': [
+                    {
+                        'key': 'month', 'value' : currentMonth
+                    },
+                    {
+                        'key': 'year', 'value'  : currentYear
+                    },
+                    {
+                        'key': 'filterDate', 'value'  : $scope.filterDate
+                    }
+                ]
+
+            };
+
+            $scope.tableOptions.sort = getSortArray();
+        }
+
+        /**
+         * TBD
+         * @param {object} tableOptions TBD
+         * @returns {donations} TBD.
+         */
+        function setTablePaginationValues(tableOptions) {
+            $scope.tableOptions.totalItems = tableOptions.totalItems;
+            $scope.tableOptions.totalPages = tableOptions.totalPages;
+        }
+
+        /**
+         * Atribui doações ao objeto da table.
+         * @param {object} arrDonations Array de doações
+         * @returns {donations} doações.
+         */
+        function setDonationsDataset(arrDonations) {
+            $scope.donations = arrDonations;
+        }
+
+        /**
+         * Obtém doações filtrando por querystring.
+         * @param {number} query A querystring.
+         * @returns {promise} Promise com os resultados.
+         */
+        $scope.logOrder = function() {
+
+            var queryDataTable;
+
+            $scope.tableOptions.sort = getSortArray();
+
+            // QueryString composition
+            queryDataTable = socialCompromiseFactory.getQueryStringDonationsByMonth($scope.tableOptions);
+
+            // Calling API to get results
+            getDonationsByQuery(queryDataTable);
+
+        };
+
+        /**
+         * Obtém doações filtrando por querystring.
+         * @param {number} query A querystring.
+         * @returns {promise} Promise com os resultados.
+         */
+        function getDonationsByQuery(query) {
+
+            if (!query) return;
+
+            $rootScope.isAppLoading         = true;
+            // Pendente
+            $scope.donatedAccountsPending  = null;
+            $scope.donatedAccountsConfirm  = null;
+            $scope.donatedAccountsDonated  = null;
+            $scope.totalMonthAmountPending = null;
+            $scope.totalMonthAmountConfirm = null;
+            $scope.totalMonthAmountDonated = null;
+            $scope.totalAmount             = null;
+
+            // Chamando API para buscar doações
+            socialCompromiseService.getDonationsByQuery(query)
+                .success(function(donationsTableData) {
+                    $rootScope.isAppLoading = $scope.isAppLoading = false;
+
+                    if (!donationsTableData.tableOptions)
+                        donationsTableData = {
+                            'tableOptions': {
+                                'totalItems': 0,
+                                'totalPages': 0
+                            }
+                        };
+
+                    // Define configurações vindas do backend na table
+                    setTablePaginationValues(donationsTableData.tableOptions);
+
+                    // Valor para doação confirmado do mês anterior
+                    $scope.totalDonatedAmountConfirm        = donationsTableData.totalDonatedAmountConfirm;
+
+                    // Valor para doação do mês seguinte
+                    $scope.totalDonatedAmountConfirmMonth   = donationsTableData.totalDonatedAmountConfirmMonth;
+
+                    $scope.dateCurrent                      = donationsTableData.dateCurrent;
+
+                    $scope.datePrev                         = donationsTableData.datePrev;
+
+                    // Pendente
+                    $scope.totalDonatedAccountsPending  = donationsTableData.totalDonatedAccountsPending;
+
+                    // Confirmada
+                    $scope.totalDonatedAccountsConfirm  = donationsTableData.totalDonatedAccountsConfirm;
+
+                    // Doado
+                    $scope.totalDonatedAccountsDonated  = donationsTableData.totalDonatedAccountsDonated;
+
+                    // Pendente
+                    $scope.donatedAccountsPending  = donationsTableData.donatedAccountsPending;
+
+                    // Confirmada
+                    $scope.donatedAccountsConfirm  = donationsTableData.donatedAccountsConfirm;
+
+                    // Doado
+                    $scope.donatedAccountsDonated  = donationsTableData.donatedAccountsDonated;
+
+                    // --
+                    $scope.totalAmount                  = donationsTableData.totalAmount;
+
+                    // --
+                    $scope.totalAmountPaginate          = donationsTableData.totalAmountPaginate;
+
+                    // donated
+                    $scope.totalMonthAmountPending  = donationsTableData.totalMonthAmountPending;
+
+                    // Confirmada
+                    $scope.totalMonthAmountConfirm  = donationsTableData.totalMonthAmountConfirm;
+
+                    // Doado
+                    $scope.totalMonthAmountDonated  = donationsTableData.totalMonthAmountDonated;
+
+
+                    // CArregar as doações anteriores
+                    $scope.loadingDonatedPast       = true;
+
+                    // Define doações vindas do bacckend na table
+                    setDonationsDataset(donationsTableData.donations || []);
+
+                })
+                .error(function(reason) {
+                    $rootScope.isAppLoading = $scope.isAppLoading = false;
+
+                    $rootScope.$broadcast('TOAST-ACTION', {
+                        'message' : reason || 'Erro ao buscar doações, verifique sua conexão',
+                        'button'  : false,
+                        'cb'      : function() {}
+                    });
+                });
+
+        }
+
+        /**
+         * Chamando API para buscar doações em andamento
+         * @returns {promise} Promise com os resultados.
+         */
+        function getDonateDonated() {
+
+            socialCompromiseService.getDonateDonated(false)
+                .success(function(getDonateDonatedData) {
+                    if (getDonateDonatedData)
+                        $scope.donateDonated = getDonateDonatedData[0];
+                })
+                .error(function(reason) {
+                    $rootScope.$broadcast('TOAST-ACTION', {
+                        'message' : reason || 'Erro ao buscar doações em andamento, verifique sua conexão',
+                        'button'  : false,
+                        'cb'      : function() {}
+                    });
+                });
+        }
+
+        /**
+         * TBD
+         * @returns {donations} TBD.
+         */
+        $scope.tablePaginate = function() {
+            $scope.getMonthDonations();
+        };
+
+        $scope.urlDriveDonate = function (_id) {
+            return coreApiService.getAppCoreUrl('drive', 'download') + '/58e39e56cb5513052e98572d/donate-files/' + _id;
+        };
+
+        $scope.openModalAttach = function (event, donate) {
+            var template,
+                panel,
+                mdPanel;
+
+            template = '<div>' +
+                '<div>Comprovantes</div>' +
+                    '<div ng-if="ctrl.donate" ng-repeat="attach in ctrl.donate.attachs" >' +
+                        '<a class="bills-link" download="{{attach.name}}" title="{{attach.name}}" href="{{ctrl.urlDriveDonate(attach._id)}}" >{{attach.name}}</a>' +
+                    '</div>' +
+                '</div>';
+
+            panel = {
+                'attachTo'      : angular.element(document.body),
+                'controller'    : CompromissoSocialController,
+                'controllerAs'  : 'ctrl',
+                'template'      : template,
+                'locals': {
+                    'donate'            : donate,
+                    'urlDriveDonate'    : $scope.urlDriveDonate
+                },
+                'hasBackdrop'   : false,
+                'panelClass'    : 'panel-contract',
+                'targetEvent'   : event,
+                'clickOutsideToClose' : true,
+                'escapeToClose' : true,
+                'focusOnOpen'   : true,
+                'zIndex'        : 62
+            };
+
+            /* -- Abrir panel -- */
+            panel.position  = $mdPanel.newPanelPosition().relativeTo(event.currentTarget, panel).addPanelPosition($mdPanel.xPosition['ALIGN_START'], $mdPanel.yPosition['BELOW']);
+            mdPanel         = $mdPanel.create(config);
+            mdPanel.open();
+
+        };
+
+        $scope.checkFilterFate = function() {
+
+            if ($scope.tableOptions.filters)
+                $scope.tableOptions.filters.forEach(function(item, index) {
+                    if (item.key === 'filterDate')
+                        $scope.tableOptions.filters.splice(index, 1);
+                });
+
+            $scope.tableOptions.filters.push(
+                {
+                    'key'   : 'filterDate',
+                    'value' : $scope.filterDate
+                }
+            );
+
+            // Buscar cadastro de doação em andamento
+            $scope.getDonations();
+
+        };
+
+        $scope.setDonationStatus = function(donationStatusValue, selectedMonth, selectedYear) {
+
+            if ($scope.tableOptions.filters)
+                $scope.tableOptions.filters.forEach(function(item, index) {
+                    if (item.key === 'status')
+                        $scope.tableOptions.filters.splice(index, 1);
+
+                    if (item.key === 'month' && selectedMonth)
+                        item.value = selectedMonth;
+
+                    if (item.key === 'year' && selectedYear)
+                        item.value  = selectedYear;
+
+                    if (item.key === 'filterDate')
+                        $scope.tableOptions.filters.splice(index, 1);
+                });
+
+            if (!selectedMonth)
+                $scope.filterDate = false;
+
+            if (selectedYear)
+                $scope.filterDate = true;
+
+            $scope.tableOptions.filters.push(
+                {
+                    'key'   : 'filterDate',
+                    'value' : $scope.filterDate
+                }
+            );
+
+            $scope.tableOptions.filters.push(
+                {
+                    'key'   : 'status',
+                    'value' : donationStatusValue
+                }
+            );
+
+            // Define mes Corrente
+            if (selectedMonth)
+                $scope.currentMonth = selectedMonth;
+
+            if (selectedYear)
+                $scope.currentYear = selectedYear;
+
+            if (Array.isArray(donationStatusValue))
+                $scope.selectedStatus = donationStatusValue;
+            else
+                $scope.selectedStatus = [donationStatusValue];
+
+            // Buscar cadastro de doação em andamento
+            $scope.getDonations();
+
+        };
+
+        /**
+         * Obtém doações por mês.
+         * @returns {donations} doações contidas em customer.contracts.
+         */
+        $scope.getMonthDonations = function() {
+
+            // QueryString composition
+            var queryDataTable = socialCompromiseFactory.getQueryStringDonationsByMonth($scope.tableOptions);
+
+            // Calling API to get results
+            getDonationsByQuery(queryDataTable);
+
+        };
+
+        $scope.getFilters = function (keyCode) {
+            if (keyCode === 13) {
+                if ($scope.tableOptions.filters)
+                    $scope.tableOptions.filters.forEach(function(item, index) {
+                        if (item.key === 'customer_name')
+                            $scope.tableOptions.filters.splice(index, 1);
+                    });
+
+                $scope.tableOptions.filters.push(
+                    {
+                        'key'   : 'customer_name',
+                        'value' : $scope.customerName
+                    }
+                );
+
+                // Buscar cadastro de doação em andamento
+                $scope.getDonations();
+            }
+        };
+
+        /**
+         * Obtém doações por mês.
+         * @param {number} selectedMonth Mês selecionado.
+         * @returns {donations} doações contidas em customer.contracts.
+         */
+        $scope.getDonations = function() {
+
+            // QueryString composition
+            var queryDataTable = socialCompromiseFactory.getQueryStringDonationsByMonth($scope.tableOptions);
+
+            // Calling API to get results
+            getDonationsByQuery(queryDataTable);
+
+            if ($mdSidenav('sidenavRight').isOpen())
+                return;
+
+            $mdSidenav('sidenavRight').toggle();
+
+        };
+
+        $scope.changeMonthYear = function() {
+            if ($scope.tableOptions.filters)
+                $scope.tableOptions.filters.forEach(function(item) {
+                    if (item.key === 'month')
+                        item.value = $scope.currentMonth;
+
+                    if (item.key === 'year')
+                        item.value  = $scope.currentYear;
+
+                });
+
+            $scope.getMonthDonations($scope.currentMonth);
+        };
+
+        function getArrMonths() {
+            var arrMonths = [
+                {
+                    'id'    : 1,
+                    'name'  : 'Janeiro'
+                },
+                {
+                    'id'    : 2,
+                    'name'  : 'Fevereiro'
+                },
+                {
+                    'id'    : 3,
+                    'name'  : 'Março'
+                },
+                {
+                    'id'    : 4,
+                    'name'  : 'Abril'
+                },
+                {
+                    'id'    : 5,
+                    'name'  : 'Maio'
+                },
+                {
+                    'id'    : 6,
+                    'name'  : 'Junho'
+                },
+                {
+                    'id'    : 7,
+                    'name'  : 'Julho'
+                },
+                {
+                    'id'    : 8,
+                    'name'  : 'Agosto'
+                },
+                {
+                    'id'    : 9,
+                    'name'  : 'Setembro'
+                },
+                {
+                    'id'    : 10,
+                    'name'  : 'Outubro'
+                },
+                {
+                    'id'    : 11,
+                    'name'  : 'Novembro'
+                },
+                {
+                    'id'    : 12,
+                    'name'  : 'Dezembro'
+                }
+            ];
+
+            return arrMonths;
+        }
+
+        function getArrYears() {
+            var arrYears = [
+                2017
+            ];
+
+            return arrYears;
+        }
+
+        $scope.toggle = function (item, list) {
+            var idx = list.indexOf(item);
+
+            if (idx > -1) {
+                list.splice(idx, 1);
+            }
+            else {
+                list.push(item);
+            }
+
+            $scope.setDonationStatus(list, $scope.currentMonth);
+        };
+
+        $scope.exists = function (item, list) {
+            return list.indexOf(item) > -1;
+        };
+
+        // Inicializa Compromisso Social
+        (function() {
+
+            $scope.isAppLoading = true;
+
+            // Inicializa valor total doação do mês
+            $scope.totalDonationsCurrentMonth = 0;
+
+            // Inicializa Média doadores x nao doadores
+            $scope.averageDonationCounter =
+                { 'donators': 0, 'notDonators' : 0 };
+
+            // Inicializa Obj de Filters
+            $scope.filters          = ['doado', 'confirmado', 'pendente'];
+
+            $scope.arrMonths        = getArrMonths();
+
+            $scope.arrYears         = getArrYears();
+
+            $scope.selectedStatus   = [];
+
+            $scope.filterDate       = true;
+
+            // Define ano Corrente
+            $scope.currentYear  = new Date().getFullYear();
+
+            $scope.currentMonth = new Date().getMonth() + 1;
+
+            // Inicializa configurações iniciais da tabela
+            setDefaultTableOptions($scope.currentMonth, $scope.currentYear);
+
+            // Busca Doações do Mês corrente passando a configuração default da tabela
+            $scope.getMonthDonations();
+
+            // Buscar cadastro de doação em andamento
+            getDonateDonated();
+
+        }());
     }
 }());
 
@@ -264,243 +803,6 @@
         };
     }
 
-}());
-(function() {
-    'use strict';
-
-    CustomerFactory.$inject = [];
-
-    angular.module('plingSiteApp').factory('customerFactory', CustomerFactory);
-
-    function CustomerFactory() {
-
-        function getCustomerPayload (customer) {
-            var newCustomer = {
-                'name': customer.name,
-                'email': customer.email,
-                'address' : customer.address,
-                'addressNumber'     : customer.addressNumber,
-                'addressComplement' : customer.addressComplement,
-                'city' : customer.city,
-                'neighborhood' : customer.neighborhood,
-                'phone' : customer.phone,
-                'phoneTwo' : customer.phoneTwo,
-                'postalCode' : customer.postalCode,
-                'state' : customer.state
-            };
-
-            if (customer.plingQuestion)
-                newCustomer.plingQuestion = customer.plingQuestion;
-
-            if (customer._id)
-                newCustomer._id = customer._id;
-
-            if (customer.cpfCnpj && customer.cpfCnpj.length === 11)
-                newCustomer.cpf = customer.cpfCnpj;
-            else if (customer.cpfCnpj && customer.cpfCnpj.length > 11)
-                newCustomer.cnpj = customer.cpfCnpj;
-
-            return newCustomer;
-        }
-
-        function getCustomer(customer) {
-            var newCustomer = {
-                '_id' : customer._id,
-                'name': customer.name,
-                'email': customer.email,
-                'address' : customer.address,
-                'addressNumber'     : customer.addressNumber,
-                'addressComplement' : customer.addressComplement,
-                'city' : customer.city,
-                'neighborhood' : customer.neighborhood,
-                'phone' : customer.phone,
-                'postalCode' : customer.postalCode,
-                'state' : customer.state,
-                'plingQuestion' : customer.plingQuestion
-            };
-
-            if (customer.phoneTwo)
-                newCustomer.phoneTwo = customer.phoneTwo;
-
-            if (customer.cpf)
-                newCustomer.cpf = customer.cpf;
-            else if (customer.cnpj)
-                newCustomer.cnpj = customer.cnpj;
-
-            return newCustomer;
-        }
-
-        return {
-            'getCustomer' : getCustomer,
-            'getCustomerPayload' : getCustomerPayload
-        };
-
-    }
-
-}());
-(function() {
-
-    'use strict';
-
-    angular
-        .module('plingSiteApp')
-        .service('socialMediaService', SocialMediaService);
-
-    SocialMediaService.$inject = [ 'httpService', '$location', 'coreApiService' ];
-
-    function SocialMediaService(httpService, $location, core) {
-
-        this.newFacebookPost = function(title, imageUrl, cb) {
-            var query = 'https://www.facebook.com/dialog/feed?';
-
-            var link = $location.host() === 'localhost' ? 'http://mercados-dev.pling.net.br' + $location.path() : $location.absUrl();
-
-            query += 'app_id=926595427425114' +
-                      '&link=' + link +
-                      '&picture=' + imageUrl +
-                      '&name=' + title +
-                      '&redirect_uri' + link;
-
-            return cb(null, query);
-        };
-
-        this.newTwitterTweet = function(description, ticket_id) {
-            var coreUrl = core.getAppCoreUrl(), link, query;
-
-            if (coreUrl.indexOf('localhost') >= 0)
-                coreUrl = 'http://api-dev.pling.net.br:5000/api/v1';
-
-            link = coreUrl + '/presenca-social/testimony/' + ticket_id;
-
-            query = 'https://twitter.com/share';
-
-            query += '?url=' + link +
-                     '&text=' + description;
-
-            return query;
-        };
-    }
-
-}());
-(function() {
-    'use strict';
-
-    StateService.$inject = [];
-
-    angular.module('plingSiteApp').service('stateService', StateService);
-
-    function StateService() {
-        this.getStates = function() {
-            return [{
-                'name' : 'Acre',
-                'uf' : 'AC'
-            },
-            {
-                'name' : 'Alagoas',
-                'uf' : 'AL'
-            },
-            {
-                'name' : 'Amazonas',
-                'uf' : 'AM'
-            },
-            {
-                'name' : 'Amapá',
-                'uf' : 'AL'
-            },
-            {
-                'name' : 'Bahia',
-                'uf' : 'BA'
-            },
-            {
-                'name' : 'Ceará',
-                'uf' : 'CE'
-            },
-            {
-                'name' : 'Distrito Federal',
-                'uf' : 'DF'
-            },
-            {
-                'name' : 'Espírito Santo',
-                'uf' : 'ES'
-            },
-            {
-                'name' : 'Goiás',
-                'uf' : 'GO'
-            },
-            {
-                'name' : 'Maranhão',
-                'uf' : 'MA'
-            },
-            {
-                'name' : 'Minas Gerais',
-                'uf' : 'MG'
-            },
-            {
-                'name' : 'Mato Grosso do Sul',
-                'uf' : 'MS'
-            },
-            {
-                'name' : 'Mato Grosso',
-                'uf' : 'MT'
-            },
-            {
-                'name' : 'Pará',
-                'uf' : 'PA'
-            },
-            {
-                'name' : 'Paraíba',
-                'uf' : 'PB'
-            },
-            {
-                'name' : 'Pernambuco',
-                'uf' : 'PE'
-            },
-            {
-                'name' : 'Piauí',
-                'uf' : 'PI'
-            },
-            {
-                'name' : 'Paraná',
-                'uf' : 'PR'
-            },
-            {
-                'name' : 'Rio de Janeiro',
-                'uf' : 'RJ'
-            },
-            {
-                'name' : 'Rio Grande do Norte',
-                'uf' : 'RN'
-            },
-            {
-                'name' : 'Roraima',
-                'uf' : 'RR'
-            },
-            {
-                'name' : 'Rondônia',
-                'uf' : 'RN'
-            },
-            {
-                'name' : 'Rio Grande do Sul',
-                'uf' : 'RS'
-            },
-            {
-                'name' : 'Santa Catarina',
-                'uf' : 'SC'
-            },
-            {
-                'name' : 'Sergipe',
-                'uf' : 'SE'
-            },
-            {
-                'name' : 'São Paulo',
-                'uf' : 'SP'
-            },
-            {
-                'name' : 'Tocantins',
-                'uf' : 'TO'
-            }];
-        };
-    }
 }());
 (function() {
 
@@ -666,6 +968,751 @@
     }
 
 }());
+(function () {
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .directive('plgDoughnutChat', plgDoughnutChat);
+
+    function plgDoughnutChat() {
+
+        // Link Function
+        function link(scope, element) {
+
+            function clickBar(evt, item) {
+
+                var status;
+
+                if (item.length > 0) {
+
+                    if (item[0]._model.label === 'Doados')
+                        status = 'doado';
+
+                    if (item[0]._model.label === 'Confirmados')
+                        status = 'confirmado';
+
+                    if (item[0]._model.label === 'Pendentes')
+                        status = 'pendente';
+
+                    scope.setDonationStatus(status);
+
+                }
+            }
+
+            new Chart(document.getElementById(element[0].id), { //eslint-disable-line
+                'type'    : 'doughnut',
+                'options' : {
+                    'responsive': true,
+                    'onClick' : clickBar
+                },
+                'data'    : {
+                    'labels'    : [ 'Doados', 'Confirmados', 'Pendentes'],
+                    'datasets'  : [{
+                        'backgroundColor': [ '#1165ae', '#309c40', '#e66e33' ],
+                        'data'  : [
+                            scope.donatedAccountsDonated > 0 ? Math.round(100 * scope.donatedAccountsDonated / (scope.donatedAccountsConfirm + scope.donatedAccountsPending + scope.donatedAccountsDonated)) : 0,
+                            scope.donatedAccountsConfirm > 0 ? Math.round(100 * scope.donatedAccountsConfirm / (scope.donatedAccountsConfirm + scope.donatedAccountsPending + scope.donatedAccountsDonated)) : 0,
+                            scope.donatedAccountsPending > 0 ? Math.round(100 * scope.donatedAccountsPending / (scope.donatedAccountsConfirm + scope.donatedAccountsPending + scope.donatedAccountsDonated)) : 0
+                        ]
+                    }]
+                }
+            });
+        }
+
+        return {
+            'restrict' : 'A',
+            'replace'  : true,
+            'link'     : link
+        };
+    }
+}());
+
+(function () {
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .directive('plgHorizontalBar', plgHorizontalBar);
+
+    plgHorizontalBar.$inject = [
+        'socialCompromiseService', 'socialCompromiseFactory', 'monthFactory'
+    ];
+
+
+    function plgHorizontalBar(socialCompromiseService, socialCompromiseFactory, monthFactory) {
+
+        // Template HTML
+        const template = '<canvas id="compSocialHorizontalBar" class="chart-horizontal-bar"></canvas>';
+
+        // Link Function
+        function link(scope, element) {
+
+            // Obtém querystring
+            var query = '?filters=' + JSON.stringify(socialCompromiseFactory.getQueryStringLastMonthDonations(5));
+            var unselectedBarColor = 'rgba(125, 195, 255, 0.4)';
+            var dataSetChart = {
+                'datasets': [
+                    {
+                        'label': 'Total doado R$',
+                        'backgroundColor' : [
+                            unselectedBarColor,
+                            unselectedBarColor,
+                            unselectedBarColor,
+                            unselectedBarColor,
+                            unselectedBarColor
+                        ],
+                        'borderWidth'     : 1
+                    }
+                ]
+            };
+
+            socialCompromiseService.getLastMonthDonationsByQuery(query)
+                .success(function(lastMonthDonations) {
+                    dataSetChart.labels             = lastMonthDonations.months;
+                    dataSetChart.datasets[0].data   = lastMonthDonations.values;
+                    dataSetChart.values             = lastMonthDonations.values;
+
+                    // Bind Filtro Mês/Ano
+                    scope.monthYears                = lastMonthDonations.months;
+
+                    createChart(dataSetChart);
+                });
+
+            function clickBar(evt, item) {
+
+                var splitedValues;
+                var monthName;
+                var selectedMonth;
+                var currentYear;
+
+                if (item.length > 0) {
+
+                    splitedValues = item[0]._model.label.split('/');
+                    monthName     = splitedValues[0];
+                    currentYear   = splitedValues[1];
+                    selectedMonth = monthFactory.getNumberByMonthName(monthName);
+
+                    if (!selectedMonth) return;
+
+                    scope.setDonationStatus('doado', selectedMonth, currentYear);
+
+                }
+            }
+
+            function createChart(lastMonthDonations) {
+                new Chart(document.getElementById(element[0].id), { //eslint-disable-line
+                    'type': 'horizontalBar',
+
+                    'data': lastMonthDonations,
+
+                    'options': {
+                        'legend'  : { display: false },
+                        'onClick' : clickBar
+                    }
+
+                });
+            }
+        }
+
+        return {
+            'restrict' : 'E',
+            'template' : template,
+            'replace'  : true,
+            'link'     : link
+        };
+    }
+
+}());
+
+(function() {
+    'use strict';
+
+    CustomerFactory.$inject = [];
+
+    angular.module('plingSiteApp').factory('customerFactory', CustomerFactory);
+
+    function CustomerFactory() {
+
+        function getCustomerPayload (customer) {
+            var newCustomer = {
+                'name': customer.name,
+                'email': customer.email,
+                'address' : customer.address,
+                'addressNumber'     : customer.addressNumber,
+                'addressComplement' : customer.addressComplement,
+                'city' : customer.city,
+                'neighborhood' : customer.neighborhood,
+                'phone' : customer.phone,
+                'phoneTwo' : customer.phoneTwo,
+                'postalCode' : customer.postalCode,
+                'state' : customer.state
+            };
+
+            if (customer.plingQuestion)
+                newCustomer.plingQuestion = customer.plingQuestion;
+
+            if (customer._id)
+                newCustomer._id = customer._id;
+
+            if (customer.cpfCnpj && customer.cpfCnpj.length === 11)
+                newCustomer.cpf = customer.cpfCnpj;
+            else if (customer.cpfCnpj && customer.cpfCnpj.length > 11)
+                newCustomer.cnpj = customer.cpfCnpj;
+
+            return newCustomer;
+        }
+
+        function getCustomer(customer) {
+            var newCustomer = {
+                '_id' : customer._id,
+                'name': customer.name,
+                'email': customer.email,
+                'address' : customer.address,
+                'addressNumber'     : customer.addressNumber,
+                'addressComplement' : customer.addressComplement,
+                'city' : customer.city,
+                'neighborhood' : customer.neighborhood,
+                'phone' : customer.phone,
+                'postalCode' : customer.postalCode,
+                'state' : customer.state,
+                'plingQuestion' : customer.plingQuestion
+            };
+
+            if (customer.phoneTwo)
+                newCustomer.phoneTwo = customer.phoneTwo;
+
+            if (customer.cpf)
+                newCustomer.cpf = customer.cpf;
+            else if (customer.cnpj)
+                newCustomer.cnpj = customer.cnpj;
+
+            return newCustomer;
+        }
+
+        return {
+            'getCustomer' : getCustomer,
+            'getCustomerPayload' : getCustomerPayload
+        };
+
+    }
+
+}());
+(function() {
+
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .factory('monthFactory',  MonthFactory);
+
+    function MonthFactory() {
+        return {
+            'getNumberByMonthName': function (monthName) {
+                if (!monthName) return;
+
+                switch (monthName.toLowerCase()) {
+                    case 'janeiro': return 1;
+                    case 'fevereiro': return 2;
+                    case 'março': return 3;
+                    case 'abril': return 4;
+                    case 'maio': return 5;
+                    case 'junho': return 6;
+                    case 'julho': return 7;
+                    case 'agosto': return 8;
+                    case 'setembro': return 9;
+                    case 'outubro': return 10;
+                    case 'novembro': return 11;
+                    case 'dezembro': return 12;
+                }
+
+            }
+        };
+    }
+}());
+
+(function () {
+
+    angular
+        .module('plingSiteApp')
+        .factory('socialCompromiseFactory', socialCompromiseFactory);
+
+    function socialCompromiseFactory() {
+
+        function getQueryStringDonationsByMonth(tableConfig) {
+
+            var queryString =
+                '?limit='   + tableConfig.limit +
+                '&page='    + tableConfig.page +
+                '&sort='    + JSON.stringify(tableConfig.sort) +
+                '&filters=' + JSON.stringify(tableConfig.filters);
+
+            return queryString;
+        }
+
+        function getQueryStringLastMonthDonations(monthsQty) {
+            var i, monthNumber, filters, arrNumberMonths = [];
+            var currentMonth = new Date().getMonth() + 1;
+            var currentYear  = new Date().getFullYear();
+
+            for (i = 0; i < monthsQty; i++) {
+                monthNumber = currentMonth - i;
+                arrNumberMonths.push(monthNumber);
+            }
+
+            filters = [
+                {
+                    'key'   : 'month',
+                    'value' : arrNumberMonths
+                },
+                {
+                    'key'   : 'year',
+                    'value' : currentYear
+                }
+            ];
+
+            return filters;
+        }
+
+        function getQueryStringStatusDonation(tableConfig, statusKeyValue) {
+            var queryString =
+                '?limit='   + tableConfig.limit +
+                '&page='    + tableConfig.page +
+                '&sort='    + JSON.stringify(tableConfig.sort);
+
+            var arrCopy = angular.copy(tableConfig.filters);
+
+            // Aproveita filtros pré definidos e complementar a pesquisa
+
+            // Verificar se o campo já não está no array
+            if (!angular.equals(statusKeyValue, {}))
+                arrCopy.filter(function(filter, index) {
+                    if (filter.key === statusKeyValue.key) {
+
+                        // Se o valor for igual substituir
+                        if (filter.value === statusKeyValue.value) {
+                            tableConfig.filters[index] = statusKeyValue;
+                        }
+
+                        // Se não for colocar em um array de valores
+                        else {
+
+
+                            if (!Array.isArray(tableConfig.filters[index].value))
+                                tableConfig.filters[index].value = [tableConfig.filters[index].value];
+
+                            // Inserindo valor no array
+                            tableConfig.filters[index].value.push(statusKeyValue.value);
+                        }
+
+                    // Se for diferente adicionar ao array
+                    } else if (index + 1 === tableConfig.filters.length) {
+                        tableConfig.filters.push(statusKeyValue);
+                    }
+                });
+
+            queryString += '&filters=' + JSON.stringify(tableConfig.filters);
+
+            return queryString;
+        }
+
+        return {
+
+            // Doações por Mês
+            'getQueryStringDonationsByMonth'  : getQueryStringDonationsByMonth,
+
+            // Doações dos últimos {x} meses
+            'getQueryStringLastMonthDonations': getQueryStringLastMonthDonations,
+
+            // Doações por status
+            'getQueryStringStatusDonation'  : getQueryStringStatusDonation
+        };
+    }
+
+}());
+
+(function () {
+
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .service('socialCompromiseService', SocialCompromiseService);
+
+    SocialCompromiseService.$inject = [ 'httpService' ];
+
+    function SocialCompromiseService(httpService) {
+
+        /**
+         * Obtem lista de Doações filtrando por mês.
+         * @param {string} queryString Configurações de paginação, ordenação, limite e filtros.
+         * @returns {Promise} Array de doações.
+         */
+        this.getDonationsByQuery = function (queryString) {
+            return httpService.get(null, 'accounts/bills/donations/' + queryString);
+        };
+
+        /**
+         * Obtem lista de Doações filtrando por mês.
+         * @param {string} queryString Configurações de paginação, ordenação, limite e filtros.
+         * @returns {Promise} Array de doações.
+         */
+        this.getLastMonthDonationsByQuery = function (queryString) {
+            return httpService.get(null, 'accounts/bills/last-month-donations/' + queryString);
+        };
+
+        /**
+         * Doações já doadas.
+         * @param {string} active doações ativas ou inativas
+         * @returns {Promise} Array de doações.
+         */
+        this.getDonateDonated = function(active) {
+            return httpService.get('accounts', 'bills/donations-donated/' + active);
+        };
+
+
+    }
+
+}());
+
+(function() {
+
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .service('socialMediaService', SocialMediaService);
+
+    SocialMediaService.$inject = [ 'httpService', '$location', 'coreApiService' ];
+
+    function SocialMediaService(httpService, $location, core) {
+
+        this.newFacebookPost = function(title, imageUrl, cb) {
+            var query = 'https://www.facebook.com/dialog/feed?';
+
+            var link = $location.host() === 'localhost' ? 'http://mercados-dev.pling.net.br' + $location.path() : $location.absUrl();
+
+            query += 'app_id=926595427425114' +
+                      '&link=' + link +
+                      '&picture=' + imageUrl +
+                      '&name=' + title +
+                      '&redirect_uri' + link;
+
+            return cb(null, query);
+        };
+
+        this.newTwitterTweet = function(description, ticket_id) {
+            var coreUrl = core.getAppCoreUrl(), link, query;
+
+            if (coreUrl.indexOf('localhost') >= 0)
+                coreUrl = 'http://api-dev.pling.net.br:5000/api/v1';
+
+            link = coreUrl + '/presenca-social/testimony/' + ticket_id;
+
+            query = 'https://twitter.com/share';
+
+            query += '?url=' + link +
+                     '&text=' + description;
+
+            return query;
+        };
+    }
+
+}());
+(function() {
+    'use strict';
+
+    StateService.$inject = [];
+
+    angular.module('plingSiteApp').service('stateService', StateService);
+
+    function StateService() {
+        this.getStates = function() {
+            return [{
+                'name' : 'Acre',
+                'uf' : 'AC'
+            },
+            {
+                'name' : 'Alagoas',
+                'uf' : 'AL'
+            },
+            {
+                'name' : 'Amazonas',
+                'uf' : 'AM'
+            },
+            {
+                'name' : 'Amapá',
+                'uf' : 'AL'
+            },
+            {
+                'name' : 'Bahia',
+                'uf' : 'BA'
+            },
+            {
+                'name' : 'Ceará',
+                'uf' : 'CE'
+            },
+            {
+                'name' : 'Distrito Federal',
+                'uf' : 'DF'
+            },
+            {
+                'name' : 'Espírito Santo',
+                'uf' : 'ES'
+            },
+            {
+                'name' : 'Goiás',
+                'uf' : 'GO'
+            },
+            {
+                'name' : 'Maranhão',
+                'uf' : 'MA'
+            },
+            {
+                'name' : 'Minas Gerais',
+                'uf' : 'MG'
+            },
+            {
+                'name' : 'Mato Grosso do Sul',
+                'uf' : 'MS'
+            },
+            {
+                'name' : 'Mato Grosso',
+                'uf' : 'MT'
+            },
+            {
+                'name' : 'Pará',
+                'uf' : 'PA'
+            },
+            {
+                'name' : 'Paraíba',
+                'uf' : 'PB'
+            },
+            {
+                'name' : 'Pernambuco',
+                'uf' : 'PE'
+            },
+            {
+                'name' : 'Piauí',
+                'uf' : 'PI'
+            },
+            {
+                'name' : 'Paraná',
+                'uf' : 'PR'
+            },
+            {
+                'name' : 'Rio de Janeiro',
+                'uf' : 'RJ'
+            },
+            {
+                'name' : 'Rio Grande do Norte',
+                'uf' : 'RN'
+            },
+            {
+                'name' : 'Roraima',
+                'uf' : 'RR'
+            },
+            {
+                'name' : 'Rondônia',
+                'uf' : 'RN'
+            },
+            {
+                'name' : 'Rio Grande do Sul',
+                'uf' : 'RS'
+            },
+            {
+                'name' : 'Santa Catarina',
+                'uf' : 'SC'
+            },
+            {
+                'name' : 'Sergipe',
+                'uf' : 'SE'
+            },
+            {
+                'name' : 'São Paulo',
+                'uf' : 'SP'
+            },
+            {
+                'name' : 'Tocantins',
+                'uf' : 'TO'
+            }];
+        };
+    }
+}());
+(function () {
+
+    angular.module('plingSiteApp')
+        .directive('carouselDirective', CarouselDirectice);
+
+    CarouselDirectice.$inject = [];
+
+    function CarouselDirectice() {
+
+        function onLink(scope) {
+
+            scope.nextSlide = function(carouselIndex) {
+                if (carouselIndex < 3)
+                    scope.carouselIndex += 1;
+            };
+
+            scope.prevSlide = function(carouselIndex) {
+                if (carouselIndex > 0)
+                    scope.carouselIndex -= 1;
+            };
+
+            scope.clickCallback = function(item) {
+                if (scope.carouselClick)
+                    scope.carouselClick(item);
+            };
+
+        }
+
+        return {
+            'restrict' : 'E',
+            'link' : onLink,
+            'scope' : {
+                'items' : '=',
+                'carouselClick' : '=',
+                'isLoading' : '='
+            },
+            'templateUrl' : 'carousel.html'
+        };
+    }
+
+}());
+(function() {
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .directive('mdButton', MdButtonDirective);
+
+    MdButtonDirective.$inject = [];
+
+    function MdButtonDirective() {
+        return {
+            'restrict' : 'A',
+            'link'     : function(scope, elem, attrs) {
+                var raw = elem[0];
+
+                $(raw).addClass('md-button md-primary');
+
+                $(raw).on('click', function(e) {
+                    var x, y, c, clickX, clickY, box, setX, setY, ripple;
+
+                    if (attrs.disabled)
+                        return;
+
+                    x      = e.pageX;
+                    y      = e.pageY;
+                    clickY = y - $(this).offset().top;
+                    clickX = x - $(this).offset().left;
+                    box    = this;
+
+                    setX   = parseInt(clickX); // eslint-disable-line
+                    setY   = parseInt(clickY); // eslint-disable-line
+                    ripple = '<svg class="ink"> \ <circle cx="' + setX + '" cy="' + setY + '" r="' + 0 + '"></circle> \ </svg>';
+
+                    $(this).find('.ink').remove();
+                    $(this).append(ripple);
+
+                    c = $(box).find('circle');
+                    c.animate({ 'r' : $(box).outerWidth() },
+                        {
+                            'duration' : 333,
+                            'step'     : function(val) { c.attr('r', val); },
+                            'complete' : function() { c.fadeOut('fast'); }
+                        });
+
+                    return true;
+
+                });
+            }
+        };
+    }
+
+}());
+(function() {
+
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .directive('mdInput', MdInputDirective);
+
+    MdInputDirective.$inject = [];
+
+    function MdInputDirective() {
+        return {
+            'restrict' : 'A',
+            'require' : ['ngModel'],
+            'link'     : function(scope, elem, attrs, ctrls) {
+                var input = $(elem[0]);
+                var ngModelCtrl = ctrls[0];
+
+                input.addClass('input-item');
+                $('<label>' + attrs.mdInput + '</label><span class="bar"></span>').insertAfter(input);
+
+                scope.$watch(attrs.ngModel, function(value) {
+                    if (value)
+                        input.addClass('hasValue');
+                    else
+                        input.removeClass('hasValue');
+                });
+
+                input.on('input keydown keyup', function() {
+                    if (ngModelCtrl.$viewValue)
+                        input.addClass('hasValue');
+                    else
+                        input.removeClass('hasValue');
+                });
+
+                if (attrs.placeholder)
+                    input.addClass('hasValue');
+            }
+        };
+    }
+
+}());
+(function () {
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .factory('zxcvbnFactory', zxcvbnFactory);
+
+    function zxcvbnFactory() {
+        return {
+            'score': function() {
+                if (typeof zxcvbn === 'undefined')
+                    return false;
+
+                var compute = zxcvbn.apply(null, arguments); //eslint-disable-line
+
+                return compute && compute.score;
+            }
+        };
+    }
+
+    plgPasswordStrength.$inject = [ 'zxcvbnFactory' ];
+    angular.module('plingSiteApp').directive('plgPasswordStrength', plgPasswordStrength);
+
+    function plgPasswordStrength(zxcvbnFactory) {
+        return {
+            'restrict': 'E',
+            'scope' : {
+                'password' : '='
+            },
+            'templateUrl' : 'password-strength.html',
+            'link': function($scope) {
+                $scope.$watch('password', function(password) {
+                    $scope.passwordStrength = password ? password.length > 6 && zxcvbnFactory.score(password) || 0 : null;
+                }, true);
+            }
+        };
+    }
+
+})();
 (function () {
     'use strict';
 
@@ -857,180 +1904,6 @@
         return new ModalService();
     }
 }());
-(function () {
-
-    angular.module('plingSiteApp')
-        .directive('carouselDirective', CarouselDirectice);
-
-    CarouselDirectice.$inject = [];
-
-    function CarouselDirectice() {
-
-        function onLink(scope) {
-
-            scope.nextSlide = function(carouselIndex) {
-                if (carouselIndex < 3)
-                    scope.carouselIndex += 1;
-            };
-
-            scope.prevSlide = function(carouselIndex) {
-                if (carouselIndex > 0)
-                    scope.carouselIndex -= 1;
-            };
-
-            scope.clickCallback = function(item) {
-                if (scope.carouselClick)
-                    scope.carouselClick(item);
-            };
-
-        }
-
-        return {
-            'restrict' : 'E',
-            'link' : onLink,
-            'scope' : {
-                'items' : '=',
-                'carouselClick' : '=',
-                'isLoading' : '='
-            },
-            'templateUrl' : 'carousel.html'
-        };
-    }
-
-}());
-(function() {
-    'use strict';
-
-    angular
-        .module('plingSiteApp')
-        .directive('mdButton', MdButtonDirective);
-
-    MdButtonDirective.$inject = [];
-
-    function MdButtonDirective() {
-        return {
-            'restrict' : 'A',
-            'link'     : function(scope, elem, attrs) {
-                var raw = elem[0];
-
-                $(raw).addClass('md-button md-primary');
-
-                $(raw).on('click', function(e) {
-                    var x, y, c, clickX, clickY, box, setX, setY, ripple;
-
-                    if (attrs.disabled)
-                        return;
-
-                    x      = e.pageX;
-                    y      = e.pageY;
-                    clickY = y - $(this).offset().top;
-                    clickX = x - $(this).offset().left;
-                    box    = this;
-
-                    setX   = parseInt(clickX); // eslint-disable-line
-                    setY   = parseInt(clickY); // eslint-disable-line
-                    ripple = '<svg class="ink"> \ <circle cx="' + setX + '" cy="' + setY + '" r="' + 0 + '"></circle> \ </svg>';
-
-                    $(this).find('.ink').remove();
-                    $(this).append(ripple);
-
-                    c = $(box).find('circle');
-                    c.animate({ 'r' : $(box).outerWidth() },
-                        {
-                            'duration' : 333,
-                            'step'     : function(val) { c.attr('r', val); },
-                            'complete' : function() { c.fadeOut('fast'); }
-                        });
-
-                    return true;
-
-                });
-            }
-        };
-    }
-
-}());
-(function() {
-
-    'use strict';
-
-    angular
-        .module('plingSiteApp')
-        .directive('mdInput', MdInputDirective);
-
-    MdInputDirective.$inject = [];
-
-    function MdInputDirective() {
-        return {
-            'restrict' : 'A',
-            'require' : ['ngModel'],
-            'link'     : function(scope, elem, attrs, ctrls) {
-                var input = $(elem[0]);
-                var ngModelCtrl = ctrls[0];
-
-                input.addClass('input-item');
-                $('<label>' + attrs.mdInput + '</label><span class="bar"></span>').insertAfter(input);
-
-                scope.$watch(attrs.ngModel, function(value) {
-                    if (value)
-                        input.addClass('hasValue');
-                    else
-                        input.removeClass('hasValue');
-                });
-
-                input.on('input keydown keyup', function() {
-                    if (ngModelCtrl.$viewValue)
-                        input.addClass('hasValue');
-                    else
-                        input.removeClass('hasValue');
-                });
-
-                if (attrs.placeholder)
-                    input.addClass('hasValue');
-            }
-        };
-    }
-
-}());
-(function () {
-    'use strict';
-
-    angular
-        .module('plingSiteApp')
-        .factory('zxcvbnFactory', zxcvbnFactory);
-
-    function zxcvbnFactory() {
-        return {
-            'score': function() {
-                if (typeof zxcvbn === 'undefined')
-                    return false;
-
-                var compute = zxcvbn.apply(null, arguments); //eslint-disable-line
-
-                return compute && compute.score;
-            }
-        };
-    }
-
-    plgPasswordStrength.$inject = [ 'zxcvbnFactory' ];
-    angular.module('plingSiteApp').directive('plgPasswordStrength', plgPasswordStrength);
-
-    function plgPasswordStrength(zxcvbnFactory) {
-        return {
-            'restrict': 'E',
-            'scope' : {
-                'password' : '='
-            },
-            'templateUrl' : 'password-strength.html',
-            'link': function($scope) {
-                $scope.$watch('password', function(password) {
-                    $scope.passwordStrength = password ? password.length > 6 && zxcvbnFactory.score(password) || 0 : null;
-                }, true);
-            }
-        };
-    }
-
-})();
 (function () {
 
     'use strict';
@@ -1562,7 +2435,8 @@
     }
 
 }());
-angular.module('plingSiteApp.templates', []).run(['$templateCache', function($templateCache) {$templateCache.put('compromisso.html','<section id=compromisso class="lg-container know-more"><div class="container text-center"><h2 class=header-text>Compromisso social</h2><p class=intro-text>N\xF3s realmente acreditamos que podemos contribuir para um mundo melhor. Um pouco pela nossa pr\xF3pria contribui\xE7\xE3o mensal, um pouco pela contribui\xE7\xE3o de nossos clientes e, principalmente, pelo exemplo que podemos dar para que outras empresas fa\xE7am o mesmo. E tamb\xE9m acreditamos que o M\xE9dico Sem Fronteiras \xE9 o destino ideal de nossos esfor\xE7os.</p></div></section><section class="lg-container top" style="background-color: #356fa2; color: white;"><div class="container text-center"><h2>10 fatos relevantes em rela\xE7\xE3o ao nosso compromisso social.</h2><div class=row><ul class="inline-block width-half text-white"><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">1</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">2</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">3</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">4</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">5</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li></ul><ul class="inline-block width-half text-white"><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">6</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">7</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">8</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">9</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li><li class="bottom-space text-left"><div class="btn btn-rectangle big-circle no-margin">10</div><h5 class=inline-block>Titulo</h5><p class="no-margin small-font margin-35-60">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></li></ul></div></div></section><section class="lg-container know-more"><div class="container text-center"><h2 class=header-text>Como funciona</h2><p class=intro-text>Quando nossos clientes contratam algum de nossos servi\xE7os, eles podem optar por doar at\xE9 3% do valor bruto do contrato para o MSF. N\xF3s, da PLING, doamos o mesmo valor do cliente, independente da nossa doa\xE7\xE3o mensal fixa.</p></div></section><section class="lg-container know-more" style="background: #356fa2"><div class="container text-center"><h2 class=header-text>Acompanhe nossas doa\xE7\xF5es.</h2><p class=intro-text>Lorem ipsum dolor sit amet, consectetur adipiscing elit</p></div></section>');
+angular.module('plingSiteApp.templates', []).run(['$templateCache', function($templateCache) {$templateCache.put('compromisso-social.html','<md-content layout=row layout-align="space-around start" style="padding: 90px 0 90px 0; background: #8ea6d1"><div layout=column class=plg-content><div layout=row layout-sm=column layout-align="center center" ng-class="{ \'margin-filter-panel\': isFiltering }" layout-margin=""><md-content flex=25 layout-padding="" layout=column style="overflow: hidden; background-color: #FFF; text-align: center; min-height: 200px; max-height: 200px" md-whiteframe=1><div layout-align=center flex=""><h4 flex="" style="margin: 2px; color: #5d5d5d;">Doa\xE7\xF5es anteriores</h4></div><div layout=column layout-align="center center" flex="" style="margin:auto; width:280px !important; height:200px !important"><plg-horizontal-bar ng-if=loadingDonatedPast></plg-horizontal-bar></div></md-content><md-content flex=25 layout-padding="" layout=column style="overflow: hidden; background-color: #FFF; text-align: center; min-height: 200px; max-height: 200px;" md-whiteframe=1><div layout-align=center flex=""><h4 flex="" style="margin: 2px; color: #5d5d5d;">Resumo por status (%)</h4></div><div layout=column layout-align="center center" flex="" style="margin: auto; width:280px !important; height:280px !important"><md-progress-circular ng-if=isAppLoading md-diameter=96></md-progress-circular><canvas ng-if="donatedAccountsConfirm || donatedAccountsDonated || donatedAccountsPending" id=doughnutChar plg-doughnut-chat=""></canvas></div></md-content></div><div layout-align="center center" layout=column style="background-color: #FFF; padding: 0 10px;"><div><md-table-container><table md-table=""><thead fix-head="" md-head="" md-order=tableOptions.order md-on-reorder=logOrder><tr md-row="" class=table-row><th md-column=""><span></span></th><th class=th-customer_name md-column="" md-order-by=customerName><span>Cliente</span><md-tooltip>Ordernar por Nome do Cliente</md-tooltip></th><th md-column="" md-order-by=customerDoc><span>CPF/CNPJ</span></th><th class=th-min md-numeric="" md-column="" md-order-by=amount><span>Doa\xE7\xE3o Cliente</span></th><th class=th-min md-numeric="" md-column="" md-order-by=amount><span>Doa\xE7\xE3o PLING</span></th><th class=th-min md-numeric="" md-column="" md-order-by=portion><span>Parcela</span></th><th class=th-min md-numeric="" md-column="" md-order-by=status><span>Status</span></th><th class=th-action md-column=""></th><th md-column="" md-numeric="" md-order-by=createdAt><span>Data</span></th></tr></thead><tbody md-body=""><tr><td class=test colspan=10><md-progress-linear style="height: 0; top: -3px; position: relative !important;" class=md-accent layout=row md-mode=indeterminate ng-show=isTableLoading></md-progress-linear></td></tr><tr class="social-comp-table-row table-row" md-row="" ng-repeat="donation in donations"><td md-cell=""><span><md-icon flex="" ng-show="donation.payment_method === \'credit_card\'" class=icon-card-cell-value md-svg-icon=../../assets/icons/ic_credit_card_black_24px.svg aria-label=indicador></md-icon><md-icon flex="" ng-show="donation.payment_method === \'bank_slip\'" class=icon-bill-cell-value md-svg-icon=../../assets/icons/ic_view_week_black_24px.svg aria-label=indicador></md-icon></span></td><td md-cell=""><span>{{ donation.customerName }}</span></td><td md-cell=""><span>{{ donation.customerDoc }}</span></td><td md-cell=""><span>{{ donation.amount === 0 ? \'-\' : donation.amount | currency:"R$ ": 2 }}</span></td><td md-cell=""><span>{{ donation.amountPling | currency:"R$ ": 2 }}</span></td><td md-cell=""><span>{{ donation.position }}</span></td><td class=status-cell md-cell=""><md-button ng-click="setDonationStatus(donation.status, currentMonth)" class=md-raised ng-class="{ \'status-cell-value-confirmed\' : donation.status === \'confirmado\', \'status-cell-value-pending\' : donation.status === \'pendente\', \'status-cell-value-donated\' : donation.status === \'doado\'}">{{ donation.status }}</md-button></td><td md-cell=""><md-button ng-show=donation.donated ng-click="openModalAttach($event, donation.donated)" class=md-icon-button aria-label=comprovante><md-icon flex="" class=icon-bill-cell-value md-svg-icon=../../assets/icons/ic_attach_file_black_24px.svg aria-label=indicador></md-icon></md-button></td><td md-cell=""><span>{{ donation.createdAt | date:\'dd/MM/yyyy\' }}</span></td></tr></tbody></table></md-table-container><md-table-pagination md-on-paginate=tablePaginate md-limit=tableOptions.limit md-page=tableOptions.page md-page-select=true md-boundary-links=true md-total={{tableOptions.totalItems}} md-label="{page: \'P\xE1gina:\', rowsPerPage: \'Doa\xE7\xF5es por p\xE1gina:\', of: \'de\'}" md-limit-options=tableOptions.limitOptions></md-table-pagination></div></div></div><md-sidenav class=md-sidenav-right md-component-id=sidenavRight md-disable-backdrop="" md-whiteframe=4 style="overflow: hidden; position: fixed; top: 56px;"><div layout=column class=md-padding><div class="per-filter md-padding" layout=row layout-align="start start"><div flex=100 style="padding: 15px;"><div flex=""><md-input-container><label>Filtro por cliente</label> <input ng-model=customerName ng-keyup=getFilters($event.keyCode)></md-input-container></div></div></div><md-divider></md-divider><div class="per-filter md-padding" layout=row layout-align="start start"><div flex=100 style="padding: 15px;"><div style="padding: 0 0 15px 0; font-weight: 500;">Filtro por status</div><div flex="" ng-repeat="item in filters" ng-class="{\'check-padding-top\': $index > 0}"><md-checkbox ng-checked="exists(item, selectedStatus)" ng-click="toggle(item, selectedStatus)">{{ item }}</md-checkbox></div></div></div><md-divider></md-divider><div class="per-filter md-padding" layout=row layout-align="start start"><div flex=100 style="padding: 15px;"><div><md-checkbox ng-model=filterDate ng-change=checkFilterFate()>Filtro po m\xEAs / ano</md-checkbox></div><div layout=row ng-show=filterDate><div flex=50><md-input-container layout-align="center center" flex=100><label>M\xEAs</label><md-select ng-model=currentMonth ng-change=changeMonthYear()><md-option ng-repeat="month in arrMonths" ng-value=month.id>{{month.name}}</md-option></md-select></md-input-container></div><div flex=50><md-input-container layout-align="center center" flex=100><label>Ano</label><md-select ng-model=currentYear ng-change=changeMonthYear()><md-option ng-repeat="year in arrYears" ng-value=year>{{year}}</md-option></md-select></md-input-container></div></div></div></div><md-divider></md-divider><div class="per-filter md-padding" layout=row layout-align="start start"><div flex=100 style="padding: 15px;"><div style="padding: 0 0 15px 0; font-weight: 500;">Resultado do Filtro</div><div style="padding: 0 0 10px 0;" ng-if="totalMonthAmountPending && totalMonthAmountPending !== \'0.00\'">Pendente: {{ totalMonthAmountPending | currency:\'R$ \' }}</div><div style="padding: 0 0 10px 0;" ng-if="totalMonthAmountConfirm && totalMonthAmountConfirm !== \'0.00\'">Confirmado: {{ totalMonthAmountConfirm | currency:\'R$ \' }}</div><div style="padding: 0 0 10px 0;" ng-if="totalMonthAmountDonated && totalMonthAmountDonated !== \'0.00\'">Doado: {{ totalMonthAmountDonated | currency:\'R$ \' }}</div><div style="padding: 0 0 10px 0;" ng-if=totalAmount>Total: {{ totalAmount | currency:\'R$ \' }}</div></div></div><md-divider></md-divider></div></md-sidenav></md-content>');
+$templateCache.put('compromisso.html','');
 $templateCache.put('home.html','<header id=inicio class="intro quem-somos"><div class=container><div class=row><div class="col-md-offset-2 col-md-8 text-center"><h2>Quem Somos</h2><p>Somos um time de pessoas apaixonadas pelo que fazemos. Nossos clientes s\xE3o nossa inspira\xE7\xE3o e raz\xE3o de existir. \xC9 exatamente por isso que ocupam o posto principal em nosso organograma. Nossa miss\xE3o \xE9 fornecer solu\xE7\xF5es que efetivamente tenham impacto em suas vidas profissionais. N\xE3o nos contentamos com o bom porque buscamos a excel\xEAncia. N\xF3s somos a PLING!</p></div></div></div></header><section id=compromisso class="lg-container know-more"><div class="container text-center"><h1 class=header-text>N\xF3s apoiamos M\xE9dicos Sem Fronteiras. Junte-se a n\xF3s nesta miss\xE3o.</h1><p class=intro-text>Acreditamos que podemos construir um mundo melhor. Fazemos isso pela nossa contribui\xE7\xE3o mensal, incentivando que nossos clientes tamb\xE9m contribuam mas, principalmente, dando o exemplo para que outras empresas fa\xE7am o mesmo. Escolhemos M\xE9dicos Sem Fronteiras como destino de nossos esfor\xE7os. Sempre que um cliente contrata nossos servi\xE7os, ele pode optar por doar at\xE9 3% do valor para o M\xE9dicos Sem Fronteiras. N\xF3s, da PLING, doaremos o mesmo valor do cliente al\xE9m da doa\xE7\xE3o que j\xE1 fazemos mensalmente.</p><a class="btn btn-rectangle page-scroll" href=#compromisso open-new-tab="https://www.msf.org.br/">Saiba mais</a> <a class="btn btn-rectangle page-scroll" open-new-tab=https://www.msf.org.br/doador-sem-fronteiras style="margin-left: 22px;">Doe agora</a></div></section><section id=contato class="lg-container fundo-pling"><div class=container style="top:0 !important;"><div class=row><div class="col-md-12 text-center"><p class=intro-text style="color: #fff!important;font-size: 26px">Nossas solu\xE7\xF5es adotam as mais modernas tecnologias de computa\xE7\xE3o na nuvem e s\xE3o ofertadas para todo o Brasil e alguns pa\xEDses do Mercosul. Apesar deste posicionamento estrat\xE9gico predominantemente virtual, somos uma empresa s\xF3lida pertencente a um grupo empresarial com fortes raizes no sul do Brasil. Esta \xE9 nossa sede. Nosso CNPJ \xE9 24.289.657/0001\xAD89. Nosso CEO \xE9 o Paulo Esteves Filho. Estamos localizados na cidade de Porto Alegre/RS, na Av. Dr. Carlos Barbosa, 68, Bairro Medianeira.</p><a class="btn btn-rectangle page-scroll" ng-click=openContactModal()>Fale conosco</a></div></div></div></section>');
 $templateCache.put('nav.html','<nav class="navbar navbar-custom navbar-fixed-top" role=navigation navbar-animation=""><div class="container container-nav"><div class=navbar-header><button type=button class=navbar-toggle data-toggle=collapse data-target=.navbar-main-collapse>Menu <i class="fa fa-bars"></i></button> <a class="navbar-brand logo-pling page-scroll" href=#home ng-click="goTo(\'/\')"><img src=dist/assets/img/logo_pling_site.jpg></a></div><div class="collapse navbar-collapse navbar-right navbar-main-collapse"><ul class="nav navbar-nav"><li><a class=page-scroll href=#compromisso>Compromisso social</a></li><li><a class=page-scroll href=#sobre>Quem somos</a></li><li><a class=page-scroll href=#trabalhe>Trabalhe conosco</a></li><li><div class="media-link color"><a class="navbar-brand logo-facebook" ng-href={{medias.facebook}} target=_blank><img src=dist/assets/img/logo_facebook.jpg></a> <a class="navbar-brand logo-twitter" ng-href={{medias.twitter}} target=_blank><img src=dist/assets/img/logo_twitter.png></a></div><div class="media-link white"><a class="navbar-brand logo-facebook" ng-href={{medias.facebook}} target=_blank><img src=dist/assets/img/logo_facebook_white.png></a> <a class="navbar-brand logo-twitter" ng-href={{medias.twitter}} target=_blank><img src=dist/assets/img/logo_twitter_white.png></a></div></li></ul></div></div></nav>');
 $templateCache.put('quemsomos.html','<header id=inicio class="intro quem-somos"><div class=container><div class=row><div class="col-md-12 text-center"><h2>Miss\xE3o</h2><p style="font-size: 20px !important">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque laoreet velit, ut viverra eros condimentum eget. Nunc malesuada magna ante, in egestas elit molestie et.</p><h2>Vis\xE3o</h2><p style="font-size: 20px !important">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque laoreet velit, ut viverra eros condimentum eget. Nunc malesuada magna ante, in egestas elit molestie et.</p><h2>Valores</h2><p style="font-size: 20px !important">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque laoreet velit, ut viverra eros condimentum eget. Nunc malesuada magna ante, in egestas elit molestie et.</p></div></div></div></header>');

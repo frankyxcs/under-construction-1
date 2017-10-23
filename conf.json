@@ -1,8 +1,8 @@
 {
-    "core_url"        : "http://api-dev.pling.net.br/api/",
+    "core_url"        : "https://api-pp.pling.net.br/api/",
     "def_api_version" : "v1",
     "auth"            : false,
-    "environment"     : "development",
+    "environment"     : "pre-production",
     "onRun"           : {
         "cacheViews": true
     },
