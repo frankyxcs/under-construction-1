@@ -1,7 +1,7 @@
 <md-content
     layout="row"
     layout-align="space-around start"
-    style="padding: 90px 0 90px 0; background: #8ea6d1" >
+    style="padding: 90px 0 90px 0; " >
 
     <!-- TOP CHARTS SIDE -->
     <div layout="column" class="plg-content" >
@@ -14,8 +14,8 @@
             layout-margin >
 
             <!--  -->
-            <md-content flex="25" layout-padding layout="column"
-                style="overflow: hidden; background-color: #FFF; text-align: center; min-height: 200px; max-height: 200px"
+            <md-content flex="40" layout-padding layout="column"
+                style="overflow: hidden; background-color: #FFF; text-align: center; min-height: 200px; "
                 md-whiteframe="1">
 
                 <div layout-align="center" flex >
@@ -25,15 +25,15 @@
                     </h4>
                 </div>
 
-                <div layout="column" layout-align="center center" flex style="margin:auto; width:280px !important; height:200px !important">
+                <div layout="column" layout-align="center center" flex style="margin:auto; height:150px !important;" >
                     <plg-horizontal-bar ng-if="loadingDonatedPast" ></plg-horizontal-bar>
                 </div>
 
             </md-content>
 
             <!--  -->
-            <md-content flex="25" layout-padding layout="column"
-                style="overflow: hidden; background-color: #FFF; text-align: center; min-height: 200px; max-height: 200px;"
+            <md-content flex="40" layout-padding layout="column"
+                style="overflow: hidden; background-color: #FFF; text-align: center; min-height: 200px; "
                 md-whiteframe="1">
 
                 <!-- <div layout="column" layout-align="center center" flex style="margin: auto; width:280px !important; height:280px !important">
@@ -46,8 +46,8 @@
                     </h4>
                 </div>
 
-                <div layout="column" layout-align="center center" flex style="margin: auto; width:280px !important; height:280px !important">
-                    <md-progress-circular ng-if="isAppLoading" md-diameter="96"></md-progress-circular>
+                <div layout="column" layout-align="center center" flex style="margin: auto; height:150px !important; " >
+                    <md-progress-circular ng-if="isChartLoading" md-diameter="96"></md-progress-circular>
                     <canvas ng-if="donatedAccountsConfirm || donatedAccountsDonated || donatedAccountsPending" id="doughnutChar" plg-doughnut-chat ></canvas>
                 </div>
 
@@ -60,6 +60,28 @@
             <div>
                 <!-- TABLE CONTAINER -->
                 <md-table-container>
+
+                    <md-toolbar class="md-table-toolbar md-default" style="height: 70px; " >
+                        <div class="md-toolbar-tools" >
+
+                            <div flex="100" >
+
+                                <div flex="50" >
+                                    <md-input-container class="md-block">
+                                        <label>Filtro por cliente</label>
+                                        <input ng-model="customerName" ng-keyup="getFilters($event.keyCode)" >
+                                    </md-input-container>
+                                </div>
+
+                            </div>
+
+                            <div flex class="flex"></div>
+                            <md-button class="md-icon-button" aria-label="filtro" ng-click="filterClick()" >
+                                <md-icon md-svg-icon="../../assets/icons/ic_filter_list_black_24px.svg" aria-label="filtro"></md-icon>
+                            </md-button>
+                        </div>
+                    </md-toolbar>
+
                     <table md-table>
 
                         <!-- TABLE HEADER -->
@@ -90,7 +112,7 @@
                                 </th>
 
                                 <!-- DOAÇÃO PLING -->
-                                <th class="th-min" md-numeric md-column md-order-by="amount">
+                                <th class="th-min" md-numeric md-column md-order-by="amountPling">
                                     <span>Doação PLING</span>
                                 </th>
 
@@ -159,7 +181,7 @@
 
                                 <!-- ROWCUSTOMER DOC -->
                                 <td md-cell>
-                                    <span>{{ donation.customerDoc }}</span>
+                                    <span>{{ maskCustomerDoc(donation.customerDoc) }}</span>
                                 </td>
 
                                 <!-- ROW CUSTOMER AMOUNT -->
@@ -189,14 +211,16 @@
 
                                 <!-- ROW ICON -->
                                 <td md-cell>
-                                    <md-button ng-show="donation.donated" ng-click="openModalAttach($event, donation.donated)" class="md-icon-button" aria-label="comprovante" >
-                                        <!-- COMPROVANTE -->
-                                        <md-icon flex
-                                            class="icon-bill-cell-value"
-                                            md-svg-icon="../../assets/icons/ic_attach_file_black_24px.svg"
-                                            aria-label="indicador">
-                                        </md-icon>
-                                    </md-button>
+                                    <a ng-show="donation.donated" ng-repeat="attach in donation.donated.attachs" download="{{attach.name}}" title="{{attach.name}}" href="{{urlDriveDonate(attach._id)}}" >
+                                        <md-button class="md-icon-button" aria-label="comprovante" >
+                                            <!-- COMPROVANTE -->
+                                            <md-icon flex
+                                                class="icon-bill-cell-value"
+                                                md-svg-icon="../../assets/icons/ic_attach_file_black_24px.svg"
+                                                aria-label="indicador">
+                                            </md-icon>
+                                        </md-button>
+                                    </a>
                                 </td>
 
                                 <!-- ROW CREATED AT -->
@@ -226,27 +250,16 @@
 
     </div>
 
-    <md-sidenav class="md-sidenav-right" md-component-id="sidenavRight" md-disable-backdrop md-whiteframe="4" style="overflow: hidden; position: fixed; top: 56px;">
+    <md-sidenav class="md-sidenav-right" md-component-id="sidenavRight" md-disable-backdrop md-whiteframe="4" style="overflow: hidden; position: fixed; top: 80px;">
+
+        <div layout="row" >
+            <div flex class="flex"></div>
+            <md-button class="md-icon-button" aria-label="filtro" ng-click="filterClick()" >
+                <md-icon md-svg-icon="../../assets/icons/ic_close_black_24px.svg" aria-label="filtro"></md-icon>
+            </md-button>
+        </div>
 
         <div layout="column" class="md-padding" >
-
-            <!-- NOME DE CLIENTE -->
-            <div class="per-filter md-padding" layout="row" layout-align="start start" >
-
-                <div flex="100" style="padding: 15px;"   >
-
-                    <div flex >
-                        <md-input-container >
-                            <label>Filtro por cliente</label>
-                            <input ng-model="customerName" ng-keyup="getFilters($event.keyCode)" >
-                        </md-input-container>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <md-divider ></md-divider>
 
             <!-- POR STATUS DOAÇÃO -->
             <div class="per-filter md-padding" layout="row" layout-align="start start" >

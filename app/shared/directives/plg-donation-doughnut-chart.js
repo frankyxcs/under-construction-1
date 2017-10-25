@@ -33,7 +33,7 @@
             new Chart(document.getElementById(element[0].id), { //eslint-disable-line
                 'type'    : 'doughnut',
                 'options' : {
-                    'responsive': true,
+                    'responsive': false,
                     'onClick' : clickBar
                 },
                 'data'    : {

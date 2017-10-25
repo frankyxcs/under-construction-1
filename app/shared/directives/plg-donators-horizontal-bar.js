@@ -6,11 +6,11 @@
         .directive('plgHorizontalBar', plgHorizontalBar);
 
     plgHorizontalBar.$inject = [
-        'socialCompromiseService', 'socialCompromiseFactory', 'monthFactory'
+        'socialCompromiseService', 'socialCompromiseFactory', 'monthFactory', '$filter'
     ];
 
 
-    function plgHorizontalBar(socialCompromiseService, socialCompromiseFactory, monthFactory) {
+    function plgHorizontalBar(socialCompromiseService, socialCompromiseFactory, monthFactory, $filter) {
 
         // Template HTML
         const template = '<canvas id="compSocialHorizontalBar" class="chart-horizontal-bar"></canvas>';
@@ -24,7 +24,7 @@
             var dataSetChart = {
                 'datasets': [
                     {
-                        'label': 'Total doado R$',
+                        'label': 'Total doado',
                         'backgroundColor' : [
                             unselectedBarColor,
                             unselectedBarColor,
@@ -41,7 +41,6 @@
                 .success(function(lastMonthDonations) {
                     dataSetChart.labels             = lastMonthDonations.months;
                     dataSetChart.datasets[0].data   = lastMonthDonations.values;
-                    dataSetChart.values             = lastMonthDonations.values;
 
                     // Bind Filtro Mês/Ano
                     scope.monthYears                = lastMonthDonations.months;
@@ -65,7 +64,7 @@
 
                     if (!selectedMonth) return;
 
-                    scope.setDonationStatus('doado', selectedMonth, currentYear);
+                    scope.setDonationStatus('doado', selectedMonth, currentYear,  true);
 
                 }
             }
@@ -76,8 +75,17 @@
 
                     'data': lastMonthDonations,
 
+                    'legend'    : 'true',
+
                     'options': {
-                        'legend'  : { display: false },
+                        'tooltips' : {
+                            'enabled': true,
+                            'callbacks' : {
+                                'label' : function (tooltipItems, data) {
+                                    return data.datasets[tooltipItems.datasetIndex].label + ': ' + $filter('currency')(tooltipItems.xLabel);
+                                }
+                            }
+                        },
                         'onClick' : clickBar
                     }
 

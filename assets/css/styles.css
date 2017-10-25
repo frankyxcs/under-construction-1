@@ -3752,10 +3752,12 @@ select:-webkit-autofill:focus {
 }
 
 .limit-select .label {
+  font-size: 90% !important;
   color: rgba(0,0,0,.54) !important;
 }
 
 .buttons .label {
+  font-size: 90% !important;
   color: rgba(0,0,0,.54) !important;
 }
 
@@ -3782,4 +3784,25 @@ select:-webkit-autofill:focus {
 
 .th-action {
   width : 10px !important;
+}
+
+.md-button {
+  text-transform: lowercase !important;
+}
+
+md-input-container {
+  margin: 18px 0 0 !important;
+}
+
+md-input-container .md-errors-spacer {
+  display: none !important;
+}
+
+md-input-container input {
+  font-family: sans-serif !important;
+  font-size: 18px !important;
+}
+
+.md-toolbar-tools {
+  font-size: 18px !important;
 }

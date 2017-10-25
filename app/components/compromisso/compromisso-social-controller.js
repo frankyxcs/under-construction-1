@@ -7,10 +7,10 @@
         .controller('CompromissoSocialController', CompromissoSocialController);
 
     CompromissoSocialController.$inject = [
-        '$rootScope', '$scope', 'socialCompromiseService', 'socialCompromiseFactory', 'coreApiService', '$mdPanel', '$mdSidenav'
+        '$rootScope', '$scope', 'socialCompromiseService', 'socialCompromiseFactory', 'coreApiService', '$mdPanel', '$mdSidenav', '$mdToast'
     ];
 
-    function CompromissoSocialController($rootScope, $scope, socialCompromiseService, socialCompromiseFactory, coreApiService, $mdPanel, $mdSidenav) {
+    function CompromissoSocialController($rootScope, $scope, socialCompromiseService, socialCompromiseFactory, coreApiService, $mdPanel, $mdSidenav, $mdToast) {
 
         /**
          * TBD
@@ -45,6 +45,10 @@
                 'limitOptions' : [ 5, 10, 15, 25, 50, 100 ],
                 'limit'        : 10,
                 'order'        : 'createdAt',
+                'rowSelection'  : false,
+                'defaultFilter' : false,
+                'currentView'   : 'table',
+                'availableViews': ['table'],
 
                 // Mes corrente
                 'filters': [
@@ -111,7 +115,9 @@
 
             if (!query) return;
 
-            $rootScope.isAppLoading         = true;
+            $rootScope.isAppLoading  = true;
+            $scope.isChartLoading    = true;
+
             // Pendente
             $scope.donatedAccountsPending  = null;
             $scope.donatedAccountsConfirm  = null;
@@ -182,19 +188,27 @@
 
 
                     // CArregar as doações anteriores
-                    $scope.loadingDonatedPast       = true;
+                    $scope.loadingDonatedPast   = true;
+                    $scope.isChartLoading       = false;
 
                     // Define doações vindas do bacckend na table
                     setDonationsDataset(donationsTableData.donations || []);
 
                 })
                 .error(function(reason) {
+                    var toast = $mdToast.simple()
+                        .textContent('Marked as read')
+                        .action('UNDO')
+                        .highlightAction(true)
+                        .highlightClass('md-accent')// Accent is used by default, this just demonstrates the usage.
+                        .position('left');
+
                     $rootScope.isAppLoading = $scope.isAppLoading = false;
 
-                    $rootScope.$broadcast('TOAST-ACTION', {
-                        'message' : reason || 'Erro ao buscar doações, verifique sua conexão',
-                        'button'  : false,
-                        'cb'      : function() {}
+                    $mdToast.show(toast).then(function(response) {
+                        if ( response === 'ok' ) {
+                            alert(reason + 'Erro ao buscar doações em andamento, verifique sua conexão');
+                        }
                     });
                 });
 
@@ -212,10 +226,17 @@
                         $scope.donateDonated = getDonateDonatedData[0];
                 })
                 .error(function(reason) {
-                    $rootScope.$broadcast('TOAST-ACTION', {
-                        'message' : reason || 'Erro ao buscar doações em andamento, verifique sua conexão',
-                        'button'  : false,
-                        'cb'      : function() {}
+                    var toast = $mdToast.simple()
+                        .textContent('Marked as read')
+                        .action('UNDO')
+                        .highlightAction(true)
+                        .highlightClass('md-accent')// Accent is used by default, this just demonstrates the usage.
+                        .position('left');
+
+                    $mdToast.show(toast).then(function(response) {
+                        if ( response === 'ok' ) {
+                            alert(reason + 'Erro ao buscar doações em andamento, verifique sua conexão');
+                        }
                     });
                 });
         }
@@ -230,43 +251,6 @@
 
         $scope.urlDriveDonate = function (_id) {
             return coreApiService.getAppCoreUrl('drive', 'download') + '/58e39e56cb5513052e98572d/donate-files/' + _id;
-        };
-
-        $scope.openModalAttach = function (event, donate) {
-            var template,
-                panel,
-                mdPanel;
-
-            template = '<div>' +
-                '<div>Comprovantes</div>' +
-                    '<div ng-if="ctrl.donate" ng-repeat="attach in ctrl.donate.attachs" >' +
-                        '<a class="bills-link" download="{{attach.name}}" title="{{attach.name}}" href="{{ctrl.urlDriveDonate(attach._id)}}" >{{attach.name}}</a>' +
-                    '</div>' +
-                '</div>';
-
-            panel = {
-                'attachTo'      : angular.element(document.body),
-                'controller'    : CompromissoSocialController,
-                'controllerAs'  : 'ctrl',
-                'template'      : template,
-                'locals': {
-                    'donate'            : donate,
-                    'urlDriveDonate'    : $scope.urlDriveDonate
-                },
-                'hasBackdrop'   : false,
-                'panelClass'    : 'panel-contract',
-                'targetEvent'   : event,
-                'clickOutsideToClose' : true,
-                'escapeToClose' : true,
-                'focusOnOpen'   : true,
-                'zIndex'        : 62
-            };
-
-            /* -- Abrir panel -- */
-            panel.position  = $mdPanel.newPanelPosition().relativeTo(event.currentTarget, panel).addPanelPosition($mdPanel.xPosition['ALIGN_START'], $mdPanel.yPosition['BELOW']);
-            mdPanel         = $mdPanel.create(config);
-            mdPanel.open();
-
         };
 
         $scope.checkFilterFate = function() {
@@ -289,22 +273,9 @@
 
         };
 
-        $scope.setDonationStatus = function(donationStatusValue, selectedMonth, selectedYear) {
+        $scope.setDonationStatus = function(donationStatusValue, selectedMonth, selectedYear, customerName) {
 
-            if ($scope.tableOptions.filters)
-                $scope.tableOptions.filters.forEach(function(item, index) {
-                    if (item.key === 'status')
-                        $scope.tableOptions.filters.splice(index, 1);
-
-                    if (item.key === 'month' && selectedMonth)
-                        item.value = selectedMonth;
-
-                    if (item.key === 'year' && selectedYear)
-                        item.value  = selectedYear;
-
-                    if (item.key === 'filterDate')
-                        $scope.tableOptions.filters.splice(index, 1);
-                });
+            // var arrOptions = JSON.parse(JSON.stringify($scope.tableOptions.filters));
 
             if (!selectedMonth)
                 $scope.filterDate = false;
@@ -312,19 +283,42 @@
             if (selectedYear)
                 $scope.filterDate = true;
 
-            $scope.tableOptions.filters.push(
+            $scope.tableOptions.filters = [
                 {
                     'key'   : 'filterDate',
                     'value' : $scope.filterDate
-                }
-            );
-
-            $scope.tableOptions.filters.push(
+                },
                 {
                     'key'   : 'status',
                     'value' : donationStatusValue
                 }
-            );
+            ];
+
+            if ($scope.filterDate) {
+                $scope.tableOptions.filters.push(
+                    {
+                        'key'   : 'month',
+                        'value' : selectedMonth || $scope.selectedMonth
+                    }
+                );
+                $scope.tableOptions.filters.push(
+                    {
+                        'key'   : 'year',
+                        'value' : selectedYear || $scope.currentYear
+                    }
+                );
+            }
+
+            if (!customerName && $scope.customerName)
+                $scope.tableOptions.filters.push(
+                    {
+                        'key'   : 'customer_name',
+                        'value' : $scope.customerName
+                    }
+                );
+
+            if (customerName)
+                $scope.customerName = null;
 
             // Define mes Corrente
             if (selectedMonth)
@@ -395,6 +389,10 @@
 
             $mdSidenav('sidenavRight').toggle();
 
+        };
+
+        $scope.filterClick = function() {
+            $mdSidenav('sidenavRight').toggle();
         };
 
         $scope.changeMonthYear = function() {
