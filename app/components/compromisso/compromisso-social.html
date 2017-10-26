@@ -1,0 +1,358 @@
+<md-content
+    layout="row"
+    layout-align="space-around start"
+    style="padding: 90px 0 90px 0; " >
+
+    <!-- TOP CHARTS SIDE -->
+    <div layout="column" class="plg-content" >
+
+        <div
+            layout="row"
+            layout-sm="column"
+            layout-align="center center"
+            ng-class="{ 'margin-filter-panel': isFiltering }"
+            layout-margin >
+
+            <!--  -->
+            <md-content flex="40" layout-padding layout="column"
+                style="overflow: hidden; background-color: #FFF; text-align: center; min-height: 200px; "
+                md-whiteframe="1">
+
+                <div layout-align="center" flex >
+                    <!-- TOTAL MONTH DONATION -->
+                    <h4 flex style="margin: 2px; color: #5d5d5d; ">
+                        Doações anteriores
+                    </h4>
+                </div>
+
+                <div layout="column" layout-align="center center" flex style="margin:auto; height:150px !important;" >
+                    <plg-horizontal-bar ng-if="loadingDonatedPast" ></plg-horizontal-bar>
+                </div>
+
+            </md-content>
+
+            <!--  -->
+            <md-content flex="40" layout-padding layout="column"
+                style="overflow: hidden; background-color: #FFF; text-align: center; min-height: 200px; "
+                md-whiteframe="1">
+
+                <!-- <div layout="column" layout-align="center center" flex style="margin: auto; width:280px !important; height:280px !important">
+                    <canvas id="pie" plg-pie-chart ></canvas>
+                </div> -->
+                <div layout-align="center" flex >
+                    <!-- TOTAL MONTH DONATION -->
+                    <h4 flex style="margin: 2px; color: #5d5d5d; ">
+                        Resumo por status (%)
+                    </h4>
+                </div>
+
+                <div layout="column" layout-align="center center" flex style="margin: auto; height:150px !important; " >
+                    <md-progress-circular ng-if="isChartLoading" md-diameter="96"></md-progress-circular>
+                    <canvas ng-if="donatedAccountsConfirm || donatedAccountsDonated || donatedAccountsPending" id="doughnutChar" plg-doughnut-chat ></canvas>
+                </div>
+
+            </md-content>
+
+        </div>
+
+        <div layout-align="center center" layout="column" style="background-color: #FFF; padding: 0 10px;" >
+
+            <div>
+                <!-- TABLE CONTAINER -->
+                <md-table-container>
+
+                    <md-toolbar class="md-table-toolbar md-default" style="height: 70px; " >
+                        <div class="md-toolbar-tools" >
+
+                            <div flex="100" >
+
+                                <div flex="50" >
+                                    <md-input-container class="md-icon-float md-icon-right md-block" >
+                                        <label>Filtro por doador/CPF/CNPJ</label>
+                                        <input ng-model="customerName" ng-keyup="getFilters($event.keyCode)" >
+                                        <md-button ng-if="customerName && customerName.length > 0" class="md-icon-button" aria-label="Limpar" ng-click="filterNoneClick()" style="float: right; margin-top: -35px; margin-right: -8px;" >
+                                            <md-icon md-svg-icon="../../assets/icons/ic_close_black_24px.svg" aria-label="Limpar" class="md-icon-close"></md-icon>
+                                        </md-button>
+                                    </md-input-container>
+                                </div>
+
+                            </div>
+                            <md-button class="md-fab md-mini md-primary" aria-label="filtro" ng-click="filterClick()" >
+                                <md-icon md-svg-icon="../../assets/icons/ic_filter_list_black_24px.svg" aria-label="filtro" ></md-icon>
+                            </md-button>
+                        </div>
+                    </md-toolbar>
+
+                    <table md-table>
+
+                        <!-- TABLE HEADER -->
+                        <thead fix-head md-head md-order="tableOptions.order" md-on-reorder="logOrder">
+
+                            <!-- HEADER ROWS -->
+                            <tr md-row class="table-row">
+
+                                <!-- ICONE -->
+                                <th md-column>
+                                    <span></span>
+                                </th>
+
+                                <!-- CLIENTE -->
+                                <th class="th-customer_name" md-column md-order-by="customerName">
+                                    <span>Doador</span>
+                                </th>
+
+                                <!-- DOCUMENTO -->
+                                <th md-column md-order-by="customerDoc">
+                                    <span>CPF/CNPJ</span>
+                                </th>
+
+                                <!-- DOAÇÃO CLIENTE -->
+                                <th class="th-min" md-numeric md-column md-order-by="amount">
+                                    <span>Doação Cliente</span>
+                                </th>
+
+                                <!-- DOAÇÃO PLING -->
+                                <th class="th-min" md-numeric md-column md-order-by="amountPling">
+                                    <span>Doação PLING</span>
+                                </th>
+
+                                <!-- PARCELA -->
+                                <th class="th-min" md-numeric md-column md-order-by="portion" >
+                                    <span>Parcela</span>
+                                </th>
+
+                                <!-- STATUS -->
+                                <th class="th-min" md-numeric md-column md-order-by="status">
+                                    <span>Status</span>
+                                </th>
+
+                                <!-- COMPROVANTE -->
+                                <th class="th-action" md-column >
+                                </th>
+
+                                <!-- DATA DE ATUALIZAÇÃO DE STATUS -->
+                                <th md-column md-numeric md-order-by="createdAt">
+                                    <span>Data</span>
+                                </th>
+
+                            </tr>
+                        </thead>
+
+                        <!-- TABLE BODY -->
+                        <tbody md-body>
+
+                            <tr>
+                                <td class="test" colspan="10">
+                                    <md-progress-linear style="height: 0; top: -3px; position: relative !important;" class="md-accent" layout="row" md-mode="indeterminate" ng-show="isTableLoading"></md-progress-linear>
+                                </td>
+                            </tr>
+
+                            <!-- TABLE ROWS -->
+                            <tr class="social-comp-table-row table-row" md-row
+                                ng-repeat="donation in donations">
+
+                                <!-- ROW ICON -->
+                                <td md-cell>
+                                    <span>
+
+                                        <!-- ICONE CARTÃO -->
+                                        <md-icon flex ng-show="donation.payment_method === 'credit_card'"
+                                            md-svg-icon="../../assets/icons/ic_credit_card_black_24px.svg"
+                                            aria-label="indicador">
+                                        </md-icon>
+
+                                        <!-- ICONE BOLETO -->
+                                        <md-icon flex ng-show="donation.payment_method === 'bank_slip'"
+                                            md-svg-icon="../../assets/icons/ic_view_week_black_24px.svg"
+                                            aria-label="indicador">
+                                        </md-icon>
+
+                                    </span>
+                                </td>
+
+                                <!-- ROW CUSTOMER NAME -->
+                                <td md-cell>
+                                    <span >
+                                        {{ donation.customerName }}
+                                    </span>
+                                </td>
+
+                                <!-- ROWCUSTOMER DOC -->
+                                <td md-cell>
+                                    <plg-mask-none value="{{donation.customerDoc}}"></plg-mask-none>
+                                </td>
+
+                                <!-- ROW CUSTOMER AMOUNT -->
+                                <td md-cell>
+                                    <span>{{ donation.amount === 0 ? '-' : donation.amount | currency:"R$ ": 2 }}</span>
+                                </td>
+
+                                <!-- ROW CUSTOMER AMOUNT -->
+                                <td md-cell>
+                                    <span>{{ donation.amountPling | currency:"R$ ": 2 }}</span>
+                                </td>
+
+                                <!-- ROW POSITION -->
+                                <td md-cell>
+                                    <span>{{ donation.position }}</span>
+                                </td>
+
+                                <!-- ROW DONATION STATUS -->
+                                <td class="status-cell" md-cell >
+                                    <md-button ng-click="setDonationStatus(donation.status, currentMonth)" class="md-raised" ng-class="{
+                                        'status-cell-value-confirmed' : donation.status === 'confirmado',
+                                        'status-cell-value-pending'   : donation.status === 'pendente',
+                                        'status-cell-value-donated'   : donation.status === 'doado'}">
+                                        {{ donation.status }}
+                                    </md-button>
+                                </td>
+
+                                <!-- ROW ICON -->
+                                <td md-cell>
+                                    <a ng-show="donation.donated" ng-repeat="attach in donation.donated.attachs" download="{{attach.name}}" title="{{attach.name}}" href="{{urlDriveDonate(attach._id)}}" >
+                                        <md-button class="md-icon-button" aria-label="comprovante" >
+                                            <!-- COMPROVANTE -->
+                                            <md-icon flex
+                                                md-svg-icon="../../assets/icons/ic_attach_file_black_24px.svg"
+                                                aria-label="indicador">
+                                            </md-icon>
+                                        </md-button>
+                                    </a>
+                                </td>
+
+                                <!-- ROW CREATED AT -->
+                                <td md-cell>
+                                    <span>{{ donation.createdAt | date:'dd/MM/yyyy' }}</span>
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </md-table-container>
+
+                <!-- PAGINATION -->
+                <md-table-pagination
+                    md-on-paginate="tablePaginate"
+                    md-limit="tableOptions.limit"
+                    md-page="tableOptions.page"
+                    md-page-select="true"
+                    md-boundary-links="true"
+                    md-total="{{tableOptions.totalItems}}"
+                    md-label="{page: 'Página:', rowsPerPage: 'Doações por página:', of: 'de'}"
+                    md-limit-options="tableOptions.limitOptions">
+                </md-table-pagination>
+            </div>
+        </div>
+
+    </div>
+
+    <md-sidenav class="md-sidenav-right" md-component-id="sidenavRight" md-disable-backdrop md-whiteframe="4" style="overflow: hidden; position: fixed; top: 80px;">
+
+        <div layout="row" >
+            <div flex class="flex"></div>
+            <md-button class="md-icon-button" aria-label="Fechar" ng-click="filterClick()" >
+                <md-icon md-svg-icon="../../assets/icons/ic_close_black_24px.svg" aria-label="Fechar"></md-icon>
+            </md-button>
+        </div>
+
+        <div layout="column" class="md-padding" >
+
+            <!-- POR STATUS DOAÇÃO -->
+            <div class="per-filter md-padding" layout="row" layout-align="start start" >
+
+                <div flex="100" style="padding: 15px;"   >
+
+                    <div style="padding: 0 0 15px 0; font-weight: 500;">Filtro por status</div>
+
+                    <div flex ng-repeat="item in filters" ng-class="{'check-padding-top': $index > 0}">
+                        <md-checkbox ng-checked="exists(item, selectedStatus)" ng-click="toggle(item, selectedStatus)">
+                            {{ item }}
+                        </md-checkbox>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <md-divider ></md-divider>
+
+            <!-- POR MÊS/ANO -->
+            <div class="per-filter md-padding" layout="row" layout-align="start start" >
+
+                <div flex="100" style="padding: 15px;" >
+
+                    <div  >
+                        <md-checkbox ng-model="filterDate" ng-change="checkFilterFate()" >
+                            Filtro po mês / ano
+                        </md-checkbox>
+                    </div>
+
+                    <div layout="row" ng-show="filterDate" >
+                        <div flex="50" >
+                            <md-input-container layout-align="center center" flex="100">
+                                <label>Mês</label>
+                                <md-select ng-model="currentMonth" ng-change="changeMonthYear()">
+                                    <md-option
+                                        ng-repeat="month in arrMonths"
+                                        ng-value="month.id" >
+                                        {{month.name}}
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+
+                        <div flex="50">
+                            <md-input-container layout-align="center center" flex="100">
+                                <label>Ano</label>
+                                <md-select ng-model="currentYear" ng-change="changeMonthYear()">
+                                    <md-option
+                                        ng-repeat="year in arrYears"
+                                        ng-value="year" >
+                                        {{year}}
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <md-divider ></md-divider>
+
+            <!--  -->
+            <div class="per-filter md-padding" layout="row" layout-align="start start" >
+
+                <div flex="100" style="padding: 15px;" >
+
+                    <div style="padding: 0 0 15px 0; font-weight: 500;">Resultado do Filtro</div>
+
+                    <div style="padding: 0 0 10px 0; " ng-if="totalMonthAmountPending && totalMonthAmountPending !== '0.00'" >
+                        Pendente: {{ totalMonthAmountPending | currency:'R$ ' }}
+                    </div>
+
+                    <div style="padding: 0 0 10px 0; " ng-if="totalMonthAmountConfirm && totalMonthAmountConfirm !== '0.00'">
+                        Confirmado: {{ totalMonthAmountConfirm | currency:'R$ ' }}
+                    </div>
+
+                    <div style="padding: 0 0 10px 0; " ng-if="totalMonthAmountDonated && totalMonthAmountDonated !== '0.00'">
+                        Doado: {{ totalMonthAmountDonated | currency:'R$ ' }}
+                    </div>
+
+                    <div style="padding: 0 0 10px 0; " ng-if="totalAmount">
+                        Total: {{ totalAmount | currency:'R$ ' }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <md-divider ></md-divider>
+
+        </div>
+
+    </md-sidenav>
+
+</md-content>

@@ -14,7 +14,8 @@
             })
 
             .when('/compromisso-social', {
-                'templateUrl'    : 'app/components/compromisso/compromisso.html',
+                'templateUrl'    : 'app/components/compromisso/compromisso-social.html',
+                'controller'     : 'CompromissoSocialController',
                 'reloadOnSearch' : false
             })
 

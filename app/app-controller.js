@@ -57,7 +57,8 @@
             httpHelperService.cancelRequest();
         });
 
-        $rootScope.goTo = function (path) {
+        $rootScope.goTo = function (path, id) {
+            $rootScope.pathSelected = id;
             if ($location.$$path === path) return;
             $location.path(path);
         };
