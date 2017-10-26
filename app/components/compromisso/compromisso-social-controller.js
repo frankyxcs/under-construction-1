@@ -351,6 +351,13 @@
 
         };
 
+        $scope.filterNoneClick = function () {
+
+            $scope.customerName = null;
+            $scope.getFilters(13);
+
+        };
+
         $scope.getFilters = function (keyCode) {
             if (keyCode === 13) {
                 if ($scope.tableOptions.filters)

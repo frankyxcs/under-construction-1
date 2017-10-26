@@ -67,17 +67,18 @@
                             <div flex="100" >
 
                                 <div flex="50" >
-                                    <md-input-container class="md-block">
-                                        <label>Filtro por cliente</label>
+                                    <md-input-container class="md-icon-float md-icon-right md-block" >
+                                        <label>Filtro por doador/CPF/CNPJ</label>
                                         <input ng-model="customerName" ng-keyup="getFilters($event.keyCode)" >
+                                        <md-button ng-if="customerName && customerName.length > 0" class="md-icon-button" aria-label="Limpar" ng-click="filterNoneClick()" style="float: right; margin-top: -35px; margin-right: -8px;" >
+                                            <md-icon md-svg-icon="../../assets/icons/ic_close_black_24px.svg" aria-label="Limpar" class="md-icon-close"></md-icon>
+                                        </md-button>
                                     </md-input-container>
                                 </div>
 
                             </div>
-
-                            <div flex class="flex"></div>
-                            <md-button class="md-icon-button" aria-label="filtro" ng-click="filterClick()" >
-                                <md-icon md-svg-icon="../../assets/icons/ic_filter_list_black_24px.svg" aria-label="filtro"></md-icon>
+                            <md-button class="md-fab md-mini md-primary" aria-label="filtro" ng-click="filterClick()" >
+                                <md-icon md-svg-icon="../../assets/icons/ic_filter_list_black_24px.svg" aria-label="filtro" ></md-icon>
                             </md-button>
                         </div>
                     </md-toolbar>
@@ -97,8 +98,7 @@
 
                                 <!-- CLIENTE -->
                                 <th class="th-customer_name" md-column md-order-by="customerName">
-                                    <span>Cliente</span>
-                                    <md-tooltip>Ordernar por Nome do Cliente</md-tooltip>
+                                    <span>Doador</span>
                                 </th>
 
                                 <!-- DOCUMENTO -->
@@ -157,14 +157,12 @@
 
                                         <!-- ICONE CARTÃO -->
                                         <md-icon flex ng-show="donation.payment_method === 'credit_card'"
-                                            class="icon-card-cell-value"
                                             md-svg-icon="../../assets/icons/ic_credit_card_black_24px.svg"
                                             aria-label="indicador">
                                         </md-icon>
 
                                         <!-- ICONE BOLETO -->
                                         <md-icon flex ng-show="donation.payment_method === 'bank_slip'"
-                                            class="icon-bill-cell-value"
                                             md-svg-icon="../../assets/icons/ic_view_week_black_24px.svg"
                                             aria-label="indicador">
                                         </md-icon>
@@ -181,7 +179,7 @@
 
                                 <!-- ROWCUSTOMER DOC -->
                                 <td md-cell>
-                                    <span>{{ maskCustomerDoc(donation.customerDoc) }}</span>
+                                    <plg-mask-none value="{{donation.customerDoc}}"></plg-mask-none>
                                 </td>
 
                                 <!-- ROW CUSTOMER AMOUNT -->
@@ -215,7 +213,6 @@
                                         <md-button class="md-icon-button" aria-label="comprovante" >
                                             <!-- COMPROVANTE -->
                                             <md-icon flex
-                                                class="icon-bill-cell-value"
                                                 md-svg-icon="../../assets/icons/ic_attach_file_black_24px.svg"
                                                 aria-label="indicador">
                                             </md-icon>
@@ -254,8 +251,8 @@
 
         <div layout="row" >
             <div flex class="flex"></div>
-            <md-button class="md-icon-button" aria-label="filtro" ng-click="filterClick()" >
-                <md-icon md-svg-icon="../../assets/icons/ic_close_black_24px.svg" aria-label="filtro"></md-icon>
+            <md-button class="md-icon-button" aria-label="Fechar" ng-click="filterClick()" >
+                <md-icon md-svg-icon="../../assets/icons/ic_close_black_24px.svg" aria-label="Fechar"></md-icon>
             </md-button>
         </div>
 

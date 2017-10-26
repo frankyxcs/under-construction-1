@@ -2593,7 +2593,7 @@ a:focus {
     /*border: 1px solid rgba(0, 0, 0, 0.71);*/
     border: none ;
   }
-  .navbar-custom .nav li.active a {
+  .navbar-custom .nav .selected {
     /*background-color: rgba(255, 255, 255, 0.51);*/
     border-bottom: 3px solid rgba(17,101,174,.7);
     padding-bottom: 7px;
@@ -2665,7 +2665,6 @@ a:focus {
 .intro-text {
   font-family: roboto-condensed,sans-serif !important;
   font-weight: 700 !important;
-}
 }
 .intro .intro-body .intro-text {
   font-size: 18px;
@@ -3805,4 +3804,8 @@ md-input-container input {
 
 .md-toolbar-tools {
   font-size: 18px !important;
+}
+
+.md-icon-close svg {
+  fill: rgb(170, 170, 170) !important;
 }
