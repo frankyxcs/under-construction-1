@@ -1,6 +1,6 @@
 {
   "name": "pling-site",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Pling site",
   "main": "server.js",
   "author": "Pling <contato@pling.net.br>",
