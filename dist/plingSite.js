@@ -145,6 +145,121 @@
     }
 }());
 
+(function() {
+
+    'use strict';
+
+    HomeController.$inject = [ '$rootScope', '$scope', '$location', 'httpService', '$localstorage', '$window', 'coreApiService', 'modalService' ];
+
+    angular.module('plingSiteApp').controller('HomeController', HomeController);
+
+    function HomeController($rootScope, $scope, $location, httpService, $localstorage, $window, core, modalService) {
+
+        function findMediaLink() {
+            var medias = core.getSocialMedia();
+            var currentBusiness = core.getCurrentBusiness();
+
+            $rootScope.medias = {
+                'facebook' : medias.facebook[currentBusiness],
+                'twitter' : medias.twitter[currentBusiness]
+            };
+        }
+
+        function getWorks(cb) {
+            var items, works = [];
+
+            httpService.get('accounts', 'customers/works', '?business=' + core.getCurrentBusiness())
+                .success(function(data) {
+                    while (data.length > 12) {
+
+                        items = data.splice(0, 12).map(function(item) {
+                            var testimony = item.testimony.find(function(r) {
+                                return r.site_name && r.site_name.indexOf('Marca') >= 0;
+                            });
+
+                            var mockup = testimony.files.find(function(t) {
+                                return t.type === 'small';
+                            });
+
+                            item.imageUrl = 'https://s3.amazonaws.com/pling-customers/' + item.associated_customer._id + '/ticket-files/' + mockup._id;
+
+                            return item;
+                        });
+
+                        works.push(items);
+                    }
+                    cb(null, works);
+                })
+                .error(function(reason) {
+                    console.log(reason); // eslint-disable-line
+                    cb(reason);
+                });
+        }
+
+        $scope.playVideo = function() {
+            $('#videoModal').modal('show');
+            $scope.showVideo = true;
+        };
+
+        $scope.closeVideo = function() {
+            $('#videoModal').modal('hide');
+            $scope.showVideo = false;
+        };
+
+        $scope.workDetails = function(item) {
+            $location.path('/marca/trabalhos/' + item._id);
+        };
+
+        $scope.openModal = function() {
+            if ($scope.isDisabledHire) return;
+
+            modalService.showModal({
+                'templateUrl' : 'criar-conta.html',
+                'controller'  : 'CriarContaController'
+            }).then(function(modal) {
+                modal.show();
+                $scope.isDisabledHire = true;
+                modal.closed.then(function() {
+                    $scope.isDisabledHire = false;
+                });
+            });
+        };
+
+        $rootScope.isAppLoaded = true;
+
+        (function init() {
+            var env = $localstorage.get('PLING-CURRENT-ENV');
+
+            $rootScope.isAppLoaded = true;
+            $scope.carouselIndex = 0;
+
+            httpService
+                .get('accounts', 'products/Login/' + env)
+                .success(function(urlData) {
+                    $rootScope.loginUrl =  urlData.callbackUrl;
+                })
+                .error(function(reason) {
+                    console.log(reason); // eslint-disable-line
+                });
+
+            delete $window.localStorage['PLING-TOKEN'];
+            delete $window.localStorage['PLING-APPS'];
+            delete $window.localStorage['PLING-USER'];
+
+            findMediaLink();
+
+            $scope.carouselLoading = true;
+            getWorks(function(err, data) {
+                $scope.carouselLoading = false;
+
+                $scope.worksBlock = data || [];
+            });
+
+        }());
+
+    }
+
+}());
 (function () {
 
     'use strict';
@@ -688,121 +803,6 @@
 
     'use strict';
 
-    HomeController.$inject = [ '$rootScope', '$scope', '$location', 'httpService', '$localstorage', '$window', 'coreApiService', 'modalService' ];
-
-    angular.module('plingSiteApp').controller('HomeController', HomeController);
-
-    function HomeController($rootScope, $scope, $location, httpService, $localstorage, $window, core, modalService) {
-
-        function findMediaLink() {
-            var medias = core.getSocialMedia();
-            var currentBusiness = core.getCurrentBusiness();
-
-            $rootScope.medias = {
-                'facebook' : medias.facebook[currentBusiness],
-                'twitter' : medias.twitter[currentBusiness]
-            };
-        }
-
-        function getWorks(cb) {
-            var items, works = [];
-
-            httpService.get('accounts', 'customers/works', '?business=' + core.getCurrentBusiness())
-                .success(function(data) {
-                    while (data.length > 12) {
-
-                        items = data.splice(0, 12).map(function(item) {
-                            var testimony = item.testimony.find(function(r) {
-                                return r.site_name && r.site_name.indexOf('Marca') >= 0;
-                            });
-
-                            var mockup = testimony.files.find(function(t) {
-                                return t.type === 'small';
-                            });
-
-                            item.imageUrl = 'https://s3.amazonaws.com/pling-customers/' + item.associated_customer._id + '/ticket-files/' + mockup._id;
-
-                            return item;
-                        });
-
-                        works.push(items);
-                    }
-                    cb(null, works);
-                })
-                .error(function(reason) {
-                    console.log(reason); // eslint-disable-line
-                    cb(reason);
-                });
-        }
-
-        $scope.playVideo = function() {
-            $('#videoModal').modal('show');
-            $scope.showVideo = true;
-        };
-
-        $scope.closeVideo = function() {
-            $('#videoModal').modal('hide');
-            $scope.showVideo = false;
-        };
-
-        $scope.workDetails = function(item) {
-            $location.path('/marca/trabalhos/' + item._id);
-        };
-
-        $scope.openModal = function() {
-            if ($scope.isDisabledHire) return;
-
-            modalService.showModal({
-                'templateUrl' : 'criar-conta.html',
-                'controller'  : 'CriarContaController'
-            }).then(function(modal) {
-                modal.show();
-                $scope.isDisabledHire = true;
-                modal.closed.then(function() {
-                    $scope.isDisabledHire = false;
-                });
-            });
-        };
-
-        $rootScope.isAppLoaded = true;
-
-        (function init() {
-            var env = $localstorage.get('PLING-CURRENT-ENV');
-
-            $rootScope.isAppLoaded = true;
-            $scope.carouselIndex = 0;
-
-            httpService
-                .get('accounts', 'products/Login/' + env)
-                .success(function(urlData) {
-                    $rootScope.loginUrl =  urlData.callbackUrl;
-                })
-                .error(function(reason) {
-                    console.log(reason); // eslint-disable-line
-                });
-
-            delete $window.localStorage['PLING-TOKEN'];
-            delete $window.localStorage['PLING-APPS'];
-            delete $window.localStorage['PLING-USER'];
-
-            findMediaLink();
-
-            $scope.carouselLoading = true;
-            getWorks(function(err, data) {
-                $scope.carouselLoading = false;
-
-                $scope.worksBlock = data || [];
-            });
-
-        }());
-
-    }
-
-}());
-(function() {
-
-    'use strict';
-
     angular
         .module('plingSiteApp')
         .directive('navBar', NavBar);
@@ -1193,212 +1193,6 @@
 
 }());
 
-(function() {
-    'use strict';
-
-    CustomerFactory.$inject = [];
-
-    angular.module('plingSiteApp').factory('customerFactory', CustomerFactory);
-
-    function CustomerFactory() {
-
-        function getCustomerPayload (customer) {
-            var newCustomer = {
-                'name': customer.name,
-                'email': customer.email,
-                'address' : customer.address,
-                'addressNumber'     : customer.addressNumber,
-                'addressComplement' : customer.addressComplement,
-                'city' : customer.city,
-                'neighborhood' : customer.neighborhood,
-                'phone' : customer.phone,
-                'phoneTwo' : customer.phoneTwo,
-                'postalCode' : customer.postalCode,
-                'state' : customer.state
-            };
-
-            if (customer.plingQuestion)
-                newCustomer.plingQuestion = customer.plingQuestion;
-
-            if (customer._id)
-                newCustomer._id = customer._id;
-
-            if (customer.cpfCnpj && customer.cpfCnpj.length === 11)
-                newCustomer.cpf = customer.cpfCnpj;
-            else if (customer.cpfCnpj && customer.cpfCnpj.length > 11)
-                newCustomer.cnpj = customer.cpfCnpj;
-
-            return newCustomer;
-        }
-
-        function getCustomer(customer) {
-            var newCustomer = {
-                '_id' : customer._id,
-                'name': customer.name,
-                'email': customer.email,
-                'address' : customer.address,
-                'addressNumber'     : customer.addressNumber,
-                'addressComplement' : customer.addressComplement,
-                'city' : customer.city,
-                'neighborhood' : customer.neighborhood,
-                'phone' : customer.phone,
-                'postalCode' : customer.postalCode,
-                'state' : customer.state,
-                'plingQuestion' : customer.plingQuestion
-            };
-
-            if (customer.phoneTwo)
-                newCustomer.phoneTwo = customer.phoneTwo;
-
-            if (customer.cpf)
-                newCustomer.cpf = customer.cpf;
-            else if (customer.cnpj)
-                newCustomer.cnpj = customer.cnpj;
-
-            return newCustomer;
-        }
-
-        return {
-            'getCustomer' : getCustomer,
-            'getCustomerPayload' : getCustomerPayload
-        };
-
-    }
-
-}());
-(function() {
-
-    'use strict';
-
-    angular
-        .module('plingSiteApp')
-        .factory('monthFactory',  MonthFactory);
-
-    function MonthFactory() {
-        return {
-            'getNumberByMonthName': function (monthName) {
-                if (!monthName) return;
-
-                switch (monthName.toLowerCase()) {
-                    case 'janeiro': return 1;
-                    case 'fevereiro': return 2;
-                    case 'março': return 3;
-                    case 'abril': return 4;
-                    case 'maio': return 5;
-                    case 'junho': return 6;
-                    case 'julho': return 7;
-                    case 'agosto': return 8;
-                    case 'setembro': return 9;
-                    case 'outubro': return 10;
-                    case 'novembro': return 11;
-                    case 'dezembro': return 12;
-                }
-
-            }
-        };
-    }
-}());
-
-(function () {
-
-    angular
-        .module('plingSiteApp')
-        .factory('socialCompromiseFactory', socialCompromiseFactory);
-
-    function socialCompromiseFactory() {
-
-        function getQueryStringDonationsByMonth(tableConfig) {
-
-            var queryString =
-                '?limit='   + tableConfig.limit +
-                '&page='    + tableConfig.page +
-                '&sort='    + JSON.stringify(tableConfig.sort) +
-                '&filters=' + JSON.stringify(tableConfig.filters);
-
-            return queryString;
-        }
-
-        function getQueryStringLastMonthDonations(monthsQty) {
-            var i, monthNumber, filters, arrNumberMonths = [];
-            var currentMonth = new Date().getMonth() + 1;
-            var currentYear  = new Date().getFullYear();
-
-            for (i = 0; i < monthsQty; i++) {
-                monthNumber = currentMonth - i;
-                arrNumberMonths.push(monthNumber);
-            }
-
-            filters = [
-                {
-                    'key'   : 'month',
-                    'value' : arrNumberMonths
-                },
-                {
-                    'key'   : 'year',
-                    'value' : currentYear
-                }
-            ];
-
-            return filters;
-        }
-
-        function getQueryStringStatusDonation(tableConfig, statusKeyValue) {
-            var queryString =
-                '?limit='   + tableConfig.limit +
-                '&page='    + tableConfig.page +
-                '&sort='    + JSON.stringify(tableConfig.sort);
-
-            var arrCopy = angular.copy(tableConfig.filters);
-
-            // Aproveita filtros pré definidos e complementar a pesquisa
-
-            // Verificar se o campo já não está no array
-            if (!angular.equals(statusKeyValue, {}))
-                arrCopy.filter(function(filter, index) {
-                    if (filter.key === statusKeyValue.key) {
-
-                        // Se o valor for igual substituir
-                        if (filter.value === statusKeyValue.value) {
-                            tableConfig.filters[index] = statusKeyValue;
-                        }
-
-                        // Se não for colocar em um array de valores
-                        else {
-
-
-                            if (!Array.isArray(tableConfig.filters[index].value))
-                                tableConfig.filters[index].value = [tableConfig.filters[index].value];
-
-                            // Inserindo valor no array
-                            tableConfig.filters[index].value.push(statusKeyValue.value);
-                        }
-
-                    // Se for diferente adicionar ao array
-                    } else if (index + 1 === tableConfig.filters.length) {
-                        tableConfig.filters.push(statusKeyValue);
-                    }
-                });
-
-            queryString += '&filters=' + JSON.stringify(tableConfig.filters);
-
-            return queryString;
-        }
-
-        return {
-
-            // Doações por Mês
-            'getQueryStringDonationsByMonth'  : getQueryStringDonationsByMonth,
-
-            // Doações dos últimos {x} meses
-            'getQueryStringLastMonthDonations': getQueryStringLastMonthDonations,
-
-            // Doações por status
-            'getQueryStringStatusDonation'  : getQueryStringStatusDonation
-        };
-    }
-
-}());
-
 (function () {
 
     'use strict';
@@ -1607,6 +1401,212 @@
         };
     }
 }());
+(function() {
+    'use strict';
+
+    CustomerFactory.$inject = [];
+
+    angular.module('plingSiteApp').factory('customerFactory', CustomerFactory);
+
+    function CustomerFactory() {
+
+        function getCustomerPayload (customer) {
+            var newCustomer = {
+                'name': customer.name,
+                'email': customer.email,
+                'address' : customer.address,
+                'addressNumber'     : customer.addressNumber,
+                'addressComplement' : customer.addressComplement,
+                'city' : customer.city,
+                'neighborhood' : customer.neighborhood,
+                'phone' : customer.phone,
+                'phoneTwo' : customer.phoneTwo,
+                'postalCode' : customer.postalCode,
+                'state' : customer.state
+            };
+
+            if (customer.plingQuestion)
+                newCustomer.plingQuestion = customer.plingQuestion;
+
+            if (customer._id)
+                newCustomer._id = customer._id;
+
+            if (customer.cpfCnpj && customer.cpfCnpj.length === 11)
+                newCustomer.cpf = customer.cpfCnpj;
+            else if (customer.cpfCnpj && customer.cpfCnpj.length > 11)
+                newCustomer.cnpj = customer.cpfCnpj;
+
+            return newCustomer;
+        }
+
+        function getCustomer(customer) {
+            var newCustomer = {
+                '_id' : customer._id,
+                'name': customer.name,
+                'email': customer.email,
+                'address' : customer.address,
+                'addressNumber'     : customer.addressNumber,
+                'addressComplement' : customer.addressComplement,
+                'city' : customer.city,
+                'neighborhood' : customer.neighborhood,
+                'phone' : customer.phone,
+                'postalCode' : customer.postalCode,
+                'state' : customer.state,
+                'plingQuestion' : customer.plingQuestion
+            };
+
+            if (customer.phoneTwo)
+                newCustomer.phoneTwo = customer.phoneTwo;
+
+            if (customer.cpf)
+                newCustomer.cpf = customer.cpf;
+            else if (customer.cnpj)
+                newCustomer.cnpj = customer.cnpj;
+
+            return newCustomer;
+        }
+
+        return {
+            'getCustomer' : getCustomer,
+            'getCustomerPayload' : getCustomerPayload
+        };
+
+    }
+
+}());
+(function() {
+
+    'use strict';
+
+    angular
+        .module('plingSiteApp')
+        .factory('monthFactory',  MonthFactory);
+
+    function MonthFactory() {
+        return {
+            'getNumberByMonthName': function (monthName) {
+                if (!monthName) return;
+
+                switch (monthName.toLowerCase()) {
+                    case 'janeiro': return 1;
+                    case 'fevereiro': return 2;
+                    case 'março': return 3;
+                    case 'abril': return 4;
+                    case 'maio': return 5;
+                    case 'junho': return 6;
+                    case 'julho': return 7;
+                    case 'agosto': return 8;
+                    case 'setembro': return 9;
+                    case 'outubro': return 10;
+                    case 'novembro': return 11;
+                    case 'dezembro': return 12;
+                }
+
+            }
+        };
+    }
+}());
+
+(function () {
+
+    angular
+        .module('plingSiteApp')
+        .factory('socialCompromiseFactory', socialCompromiseFactory);
+
+    function socialCompromiseFactory() {
+
+        function getQueryStringDonationsByMonth(tableConfig) {
+
+            var queryString =
+                '?limit='   + tableConfig.limit +
+                '&page='    + tableConfig.page +
+                '&sort='    + JSON.stringify(tableConfig.sort) +
+                '&filters=' + JSON.stringify(tableConfig.filters);
+
+            return queryString;
+        }
+
+        function getQueryStringLastMonthDonations(monthsQty) {
+            var i, monthNumber, filters, arrNumberMonths = [];
+            var currentMonth = new Date().getMonth() + 1;
+            var currentYear  = new Date().getFullYear();
+
+            for (i = 0; i < monthsQty; i++) {
+                monthNumber = currentMonth - i;
+                arrNumberMonths.push(monthNumber);
+            }
+
+            filters = [
+                {
+                    'key'   : 'month',
+                    'value' : arrNumberMonths
+                },
+                {
+                    'key'   : 'year',
+                    'value' : currentYear
+                }
+            ];
+
+            return filters;
+        }
+
+        function getQueryStringStatusDonation(tableConfig, statusKeyValue) {
+            var queryString =
+                '?limit='   + tableConfig.limit +
+                '&page='    + tableConfig.page +
+                '&sort='    + JSON.stringify(tableConfig.sort);
+
+            var arrCopy = angular.copy(tableConfig.filters);
+
+            // Aproveita filtros pré definidos e complementar a pesquisa
+
+            // Verificar se o campo já não está no array
+            if (!angular.equals(statusKeyValue, {}))
+                arrCopy.filter(function(filter, index) {
+                    if (filter.key === statusKeyValue.key) {
+
+                        // Se o valor for igual substituir
+                        if (filter.value === statusKeyValue.value) {
+                            tableConfig.filters[index] = statusKeyValue;
+                        }
+
+                        // Se não for colocar em um array de valores
+                        else {
+
+
+                            if (!Array.isArray(tableConfig.filters[index].value))
+                                tableConfig.filters[index].value = [tableConfig.filters[index].value];
+
+                            // Inserindo valor no array
+                            tableConfig.filters[index].value.push(statusKeyValue.value);
+                        }
+
+                    // Se for diferente adicionar ao array
+                    } else if (index + 1 === tableConfig.filters.length) {
+                        tableConfig.filters.push(statusKeyValue);
+                    }
+                });
+
+            queryString += '&filters=' + JSON.stringify(tableConfig.filters);
+
+            return queryString;
+        }
+
+        return {
+
+            // Doações por Mês
+            'getQueryStringDonationsByMonth'  : getQueryStringDonationsByMonth,
+
+            // Doações dos últimos {x} meses
+            'getQueryStringLastMonthDonations': getQueryStringLastMonthDonations,
+
+            // Doações por status
+            'getQueryStringStatusDonation'  : getQueryStringStatusDonation
+        };
+    }
+
+}());
+
 (function () {
 
     angular.module('plingSiteApp')
@@ -2512,5 +2512,5 @@ $templateCache.put('carousel.html','<div class=carousel-block><div ng-show=isLoa
 $templateCache.put('password-strength.html','<div class=plg-strength-meter-container><div class=plg-strength-meter><div class=plg-strength-meter-fill data-strength={{passwordStrength}}></div></div></div>');
 $templateCache.put('modal-template.html','<div id=somedialog class="dialog dialog--close" ng-class="{\'dialog--open\' : showModal}"><div class=dialog__overlay></div><div class=dialog__content><div class=morph-shape><svg xmlns=http://www.w3.org/2000/svg width=100% height=100% viewbox="0 0 560 280" preserveaspectratio=none><rect x=3 y=3 fill=none width=556 height=276></rect></svg></div><span class=close-btn ng-click="close(\'false\')"></span><div class=dialog-body>{{modalTemplate}}</div></div></div>');
 $templateCache.put('contato.html','<div class=dialog-inner><div ng-show=isLoading class=loader><div class=general-loader><div class=comment-icon><i class=dit></i> <i class=dit></i> <i class=dit></i></div></div></div><div class=steps ng-hide=isLoading><form name=emailForm novalidate="" style="width: 560px;" autocomplete=off><h2>Fale conosco</h2><div class=form-container ng-init="emailAutoFocus = true;"><div class=row><div class="col-md-offset-2 col-md-8"><div class=material-input><input md-input=Nome name=name type=text ng-model=info.name required="" autocomplete=off plg-auto-focus=emailAutoFocus></div><div class=material-input><input md-input=Email name=email type=email ng-model=info.email required="" autocomplete=off><p class="input-error help-block" ng-show="emailForm.email.$error.required && emailForm.email.$touched">Campo obrigat\xF3rio.</p><p class="input-error help-block" ng-show="emailForm.email.$error.email && emailForm.email.$touched">Email inv\xE1lido.</p></div><div class=material-input><textarea md-input=Descri\xE7\xE3o name=description type=text ng-model=info.description required="" autocomplete=off maxlength=160></textarea></div></div></div></div></form></div></div><div class=dialog-footer><button type=button md-button="" ng-click=close();>Cancelar</button> <button type=button class="md-button md-primary" ng-click=send(); ng-disabled="emailForm.email.$error.required || emailForm.name.$error.required || emailForm.description.$error.required">Enviar</button></div>');
-$templateCache.put('criar-conta.html','<div class=dialog-inner><div ng-show=isLoading class=loader><div class=general-loader><div class=comment-icon><i class=dit></i> <i class=dit></i> <i class=dit></i></div></div></div><div class=steps ng-hide=isLoading><form name=emailForm key-enter="checkEmail(login.email, emailForm);" novalidate="" ng-show="index === 0" style="width: 560px;"><h2>Informe seu email</h2><p class=info>Ele ser\xE1 o seu login na PLING para acompanhar, via Painel do Cliente, o andamento de sua contrata\xE7\xE3o. Se voc\xEA j\xE1 participa da PLING, informe seu login.</p><div class=form-container><div class=row><div class="col-md-offset-2 col-md-8"><div class=material-input><input md-input="Seu email" name=email type=email ng-model=login.email required="" autocomplete=off plg-auto-focus=emailAutoFocus><p class="input-error help-block" ng-show="emailForm.email.$error.required && emailForm.email.$touched">Campo obrigat\xF3rio.</p><p class="input-error help-block" ng-show="emailForm.email.$error.email && emailForm.email.$touched">Email inv\xE1lido.</p></div></div></div></div></form><form name=loginForm key-enter="submitLoginForm(loginForm, login)" novalidate="" ng-show="index === 1" style="width: 560px;"><h2>{{ createAccount ? \'Crie sua senha\' : \'Informe sua senha\'}}</h2><p ng-if=!createAccount class=info>Identificamos que voc\xEA j\xE1 \xE9 um usu\xE1rio da PLING. Informe sua senha para prosseguirmos.</p><p ng-if=createAccount class=info>Ela deve conter no m\xEDnimo 6 caracteres, misturando letras e n\xFAmeros</p><div class=form-container><div class=row><div ng-class="{\'col-md-offset-2 col-md-4\' : createAccount, \'col-md-offset-3 col-md-6\' : !createAccount}"><div class=material-input ng-if=createAccount><input md-input="Sua senha" type=password name=pwd ng-model=login.pwd required="" ng-pattern="/(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])*[A-Za-z\\d$@$!%*#?&]{6,20}/" plg-auto-focus=pwdAutoFocus><plg-password-strength password=login.pwd></plg-password-strength></div><div class=material-input ng-if=!createAccount><input md-input="Sua senha" type=password name=pwd ng-model=login.pwd required="" plg-auto-focus=pwdAutoFocus></div></div><div class="col-md-offset-1 col-md-4" ng-if=createAccount><div class=material-input><input md-input="Confirme sua senha" type=password name=confPwd ng-model=login.confPwd required="" ng-pattern="/(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])*[A-Za-z\\d$@$!%*#?&]{6,20}/"></div></div></div><div class="row inline-err" ng-class="{\'inline-err-pass\' : createAccount}"><p ng-class="{\'col-md-offset-2\' : createAccount, \'col-md-offset-3\' : !createAccount}" style="padding-left: 5px;"></p><p class=input-error ng-show="createAccount && loginForm.pwd.$invalid && !loginForm.pwd.$pristine && loginForm.pwd.$touched">Sua senha deve conter no m\xEDnimo 6 caracteres, misturando letras e n\xFAmeros.</p><p class=input-error ng-show=loginErrorMessage>Esta senha n\xE3o corresponde ao login informado.</p><p class=input-error ng-show="login.pwd !== login.confPwd && loginForm.confPwd.$touched && !loginForm.pwd.$invalid">Senhas informadas n\xE3o conferem.</p></div></div></form><form name=customerForm key-enter=formSimpleSubmit(customerForm); novalidate="" ng-show="index === 2" style="width: 720px"><h2>Dados b\xE1sicos</h2><p ng-if=!customer._id class=info>Estas informa\xE7\xF5es s\xE3o necess\xE1rias para que possamos emitir a nota fiscal eletr\xF4nica da contrata\xE7\xE3o que est\xE1 sendo realizada.</p><p ng-if=customer._id class=info>Identificamos, pelo usu\xE1rio e senha informados, que voc\xEA j\xE1 possui uma conta ativa na PLING. Confirme seus dados ou corrija-os caso estejam equivocados.</p><div class=form-container><div class="row col-md-offset-1 col-md-10"><div class=col-md-12><div class=material-input><input md-input="Seu nome ou de sua empresa" type=text name=name plg-auto-focus=customerNameAutoFocus ng-model=customer.name ng-minlength=3 ng-maxlength=50 required=""><p class=input-error ng-show="customerForm.name.$invalid && customerForm.name.$touched">Campo obrigat\xF3rio ou M\xEDnimo de 3 e m\xE1ximo de 50 caracteres.</p></div></div></div><div class="row col-md-offset-1 col-md-10"><div class=col-md-4><div class=material-input><input md-input="Seu CPF ou CNPJ" type=text required="" name=cpfCnpj ng-model=customer.cpfCnpj ui-br-cpfcnpj-mask=""><p class=input-error ng-show="customerForm.cpfCnpj.$error.cpf && customerForm.cpfCnpj.$touched">CPF inv\xE1lido.</p><p class=input-error ng-show="customerForm.cpfCnpj.$error.cnpj && customerForm.cpfCnpj.$touched">CNPJ inv\xE1lido.</p><p class=input-error ng-show="customerForm.cpfCnpj.$error.required && customerForm.cpfCnpj.$touched">Campo obrigat\xF3rio.</p></div></div><div class=col-md-4><div class=material-input><input md-input="Seu telefone celular" name=phone ng-model=customer.phone ui-mask="(99) 9999-9999?9" ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{customerForm.phone.$viewValue ? \'_\' : \'\'}}" required=""><p class=input-error ng-show="customerForm.phone.$invalid && customerForm.phone.$touched">Campo obrigat\xF3rio.</p></div></div><div class=col-md-4><div class=material-input><input md-input="Telefone adicional" name=phoneTwo ng-model=customer.phoneTwo ui-mask="(99) 9999-9999?9" ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{customerForm.phoneTwo.$viewValue ? \'_\' : \'\'}}"></div></div></div></div></form><form name=customerComplementForm key-enter=formSimpleSubmit(customerComplementForm); novalidate="" ng-show="index === 3" style="width: 720px"><h2>Seu endere\xE7o</h2><p ng-if=!customer._id class=info>Estas informa\xE7\xF5es s\xE3o necess\xE1rias para que possamos emitir a nota fiscal eletr\xF4nica da contrata\xE7\xE3o que est\xE1 sendo realizada.</p><p ng-if=customer._id class=info>Identificamos, pelo usu\xE1rio e senha informados, que voc\xEA j\xE1 possui uma conta ativa na PLING. Confirme seus dados ou corrija-os caso estejam equivocados.</p><div class=form-container><div class=row><div class="col-md-offset-1 col-md-2"><div class=material-input><input md-input=CEP name=postalCode ng-model=customer.postalCode ng-change="getCep(customer.postalCode, customer)" plg-auto-focus=cepAutoFocus ui-mask=99999-999 ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{customerComplementForm.postalCode.$viewValue ? \'_\' : \'\'}}"><p class=input-error ng-show="customerComplementForm.postalCode.$invalid && customerComplementForm.postalCode.$touched">CEP inv\xE1lido.</p></div></div></div><div class=row><div class="col-md-offset-1 col-md-6"><div class=material-input><input md-input=Endere\xE7o type=text required="" name=address ng-model=customer.address ng-class="{\'input-loading\' : isCepLoading}"><p class=input-error ng-show="customerComplementForm.address.$invalid && !customerComplementForm.address.$pristine">Endere\xE7o incorreto.</p></div></div><div class=col-md-2><div class=material-input><input md-input=Numero name=number type=text ng-model=customer.addressNumber ui-mask=9?9?9?9?9?9?9?9 ui-mask-placeholder="" ui-mask-placeholder-char=space></div></div><div class=col-md-2><div class=material-input><input md-input=Complemento name=addressComplement ng-model=customer.addressComplement></div></div></div><div class=row><div class="col-md-offset-1 col-md-3"><div class=material-input><input md-input=Bairro required="" name=neighborhood ng-model=customer.neighborhood ng-class="{\'input-loading\' : isCepLoading}"></div></div><div class=col-md-3><div class=material-input><input md-input=Cidade required="" name=city ng-model=customer.city ng-class="{\'input-loading\' : isCepLoading}"></div></div><div class=col-md-4><div class=material-input><select md-input=Estado required="" ng-model=customer.state ng-class="{\'input-loading\' : isCepLoading}"><option ng-repeat="st in states" value={{st.uf}}>{{st.name}}</option></select></div></div></div></div></form><form name=paymentForm key-enter=formSimpleSubmit(paymentForm); novalidate="" ng-show="index === 4" style="width: 720px"><h2>Pagamento</h2><p class=info>Escolha a forma de pagamento e informe os dados de seu cart\xE3o de cr\xE9dito. Somente s\xE3o aceitos pagamentos atrav\xE9s de cart\xE3o de cr\xE9dito (Visa, MasterCard, Diners Club e Elo).</p><p class=info>{{ product.pricing.description }}</p><div class=form-container><div class=row><div class="col-md-offset-1 col-md-3"><div class=material-input><select md-input="Forma de Pagamento" name=payConditions required="" ng-model=paymentProfile.installments ng-class="{\'input-gray\' : !paymentProfile.installments}" plg-auto-focus=paymentAutoFocus><option ng-repeat="ins in getInstallmentNumber(product.pricing.installments)" value={{ins}}>{{ (ins) > 1 ? ins + \' vezes\' : \'\xC0 vista\' }}</option></select></div></div></div><div class=row><div class="col-md-offset-1 col-md-3"><div class=material-input><input md-input="N\xFAmero do cart\xE3o" name=cardNumber ng-model=paymentProfile.cardNumber card-validator=number plg-auto-focus=cardNumberFocus required="" ui-mask="9999 9999 9999 9?9?9?9" ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{paymentForm.cardNumber.$viewValue ? \'_\' : \'\'}}"><p class=input-error ng-show="paymentForm.cardNumber.$invalid && paymentForm.cardNumber.$touched">N\xFAmero do cart\xE3o inv\xE1lido.</p></div></div><div class=col-md-5><div class=material-input><input md-input="Nome impresso no cart\xE3o" autocomplete=off ng-change="paymentProfile.cardName=paymentProfile.cardName.toUpperCase();" name=cardName ng-model=paymentProfile.cardName ng-minlength=1 ng-maxlength=100 required=""></div></div><div class=col-md-1><div class=material-input><input md-input=Validade name=validDate class=input-item ng-model=paymentProfile.validDate ui-mask=99/99 card-validator=date ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{paymentForm.validDate.$viewValue ? \'_\' : \'\'}}"><p class=input-error ng-show="paymentForm.validDate.$invalid && paymentForm.validDate.$touched">Validade inv\xE1lida.</p></div></div><div class=col-md-1><div class=material-input><input md-input=CVV type=password ng-model=paymentProfile.cvv required="" ng-minlength=3 ng-maxlength=3 maxlength=3></div></div></div></div></form><div ng-show="index === 5" style="width: 720px;"><h2>Resumo do pedido</h2><p class=info>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque laoreet velit</p><div class=form-container><div class="row col-md-offset-1 col-md-10"><div class=col-md-6><div class=material-input><input class="input-item hasValue" value={{customer.name}} disabled=""> <label>Nome</label> <span class=bar></span></div></div><div class=col-md-6><div class=material-input><input class="input-item hasValue" value={{customer.cpfCnpj}} disabled=""> <label>{{ customer.cpfCnpj.length < 12 ? \'CPF\' : \'CNPJ\' }}</label> <span class=bar></span></div></div></div><div class="row col-md-offset-1 col-md-10"><div class=col-md-6><div class=material-input><input class="input-item hasValue" value={{product.name}} disabled=""> <label>Produto</label> <span class=bar></span></div></div><div class=col-md-6><div class=material-input><input class="input-item hasValue" value="{{product.pricing.price + \' - \' + paymentProfile.installments + \'x\'}}" disabled=""> <label>Valor</label> <span class=bar></span></div></div></div><div class="row col-md-offset-1 col-md-10"><div class=col-md-6><div class=material-input><input class="input-item hasValue" value="XXXX.XXXX.XXXX.{{paymentProfile.cardNumber.substr(12, 4)}}" disabled=""> <label>Cart\xE3o</label> <span class=bar></span></div></div></div></div></div><div ng-show="index === 6" style="width: 720px"><h2>{{responseMessage}}</h2><p class=info>{{responseText}}</p></div></div></div><div class=dialog-footer ng-hide=isLoading><div ng-if="index === 0"><button type=button md-button="" ng-click=checkEmail(login.email); ng-disabled=emailForm.$invalid>Avan\xE7ar</button></div><div ng-if="index === 1"><button type=button class="md-button md-primary" ng-click="prevStep(loginForm); clearInputs();">Voltar</button> <button ng-if=createAccount type=button class="md-button md-primary" ng-click="formSimpleSubmit(); savePwd(login);" ng-disabled="loginForm.$invalid || (login.pwd !== login.confPwd && createAccount)">Avan\xE7ar</button> <button ng-if=!createAccount type=button class="md-button md-primary" ng-click=loginUser(login) ng-disabled=loginForm.$invalid>Avan\xE7ar</button></div><div ng-if="index === 2"><button type=button class="md-button md-primary" ng-click=prevStep(customerForm)>Voltar</button> <button type=button class="md-button md-primary" ng-click=formSimpleSubmit(customerForm); ng-disabled=customerForm.$invalid>Avan\xE7ar</button></div><div ng-if="index === 3"><button type=button class="md-button md-primary" ng-click=prevStep(customerComplementForm);>Voltar</button> <button type=button class="md-button md-primary" ng-click=formSimpleSubmit(customerComplementForm); ng-disabled=customerComplementForm.$invalid>Avan\xE7ar</button></div><div ng-if="index === 4"><button type=button class="md-button md-primary" ng-click=prevStep(paymentForm);>Voltar</button> <button type=button class="md-button md-primary" ng-disabled=paymentForm.$invalid; ng-click=formSimpleSubmit(paymentForm)>Avan\xE7ar</button></div><div ng-if="index === 5"><button type=button class="md-button md-primary" ng-click=prevStep()>Voltar</button> <button type=button class="md-button md-primary" ng-click="sendPayment(customer, paymentProfile, product)">Contratar</button></div><div ng-if="index === 6"><button type=button class="md-button md-primary" ng-if=!showError ng-hide=paymentError ng-click=redirectToPanel()>Acessar painel</button> <button type=button class="md-button md-primary" ng-if=!showError ng-show=paymentError ng-click=tryAgain(paymentProfile)>Tentar novamente</button> <button type=button class="md-button md-primary" ng-if=showError ng-click=close();>OK</button></div></div>');
-$templateCache.put('email.html','<div class=dialog-inner><div class=loader ng-show=isLoading><div class=general-loader><div class=comment-icon><i class=dit></i> <i class=dit></i> <i class=dit></i></div></div><p>Aguarde enviando...</p></div><form name=emailForm style="width: 520px" ng-hide=isLoading><h2>Informe seu email</h2><p class=info>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque laoreet velit</p><div class=form-container><div class=row><div class="col-md-offset-1 col-md-10"><div class=material-input><input md-input=Remetente name=sender type=email ng-model=config.from required=""><p class="input-error help-block" ng-show="emailForm.sender.$error.required && emailForm.sender.$touched">Campo obrigat\xF3rio.</p><p class="input-error help-block" ng-show="emailForm.sender.$error.email && emailForm.sender.$touched">Email inv\xE1lido.</p></div></div></div><div class=row><div class="col-md-offset-1 col-md-10"><div class=material-input><input md-input=Destinat\xE1rio name=to type=email ng-model=config.to required=""><p class="input-error help-block" ng-show="emailForm.to.$error.required && emailForm.to.$touched">Campo obrigat\xF3rio.</p><p class="input-error help-block" ng-show="emailForm.to.$error.email && emailForm.to.$touched">Email inv\xE1lido.</p></div></div></div><div class=row><div class="col-md-offset-1 col-md-10"><div class=material-input><input md-input=Assunto name=subject type=text ng-model=config.subject required=""><p class="input-error help-block" ng-show="emailForm.subject.$error.required && emailForm.subject.$touched">Campo obrigat\xF3rio.</p></div></div></div><div class=row><div class="col-md-offset-1 col-md-10"><div class=material-input><textarea md-input=Descri\xE7\xE3o name=description ng-model=config.description required=""></textarea><p class="input-error help-block" ng-show="emailForm.description.$error.required && emailForm.description.$touched">Campo obrigat\xF3rio.</p></div></div></div></div></form><div><div class=dialog-footer><button type=button class=md-button ng-click=close()>Cancelar</button> <button type=button class="md-button md-primary" ng-disabled=emailForms.$invalid ng-click=sendEmail(config)>Enviar</button></div></div></div>');}]);
+$templateCache.put('email.html','<div class=dialog-inner><div class=loader ng-show=isLoading><div class=general-loader><div class=comment-icon><i class=dit></i> <i class=dit></i> <i class=dit></i></div></div><p>Aguarde enviando...</p></div><form name=emailForm style="width: 520px" ng-hide=isLoading><h2>Informe seu email</h2><p class=info>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque laoreet velit</p><div class=form-container><div class=row><div class="col-md-offset-1 col-md-10"><div class=material-input><input md-input=Remetente name=sender type=email ng-model=config.from required=""><p class="input-error help-block" ng-show="emailForm.sender.$error.required && emailForm.sender.$touched">Campo obrigat\xF3rio.</p><p class="input-error help-block" ng-show="emailForm.sender.$error.email && emailForm.sender.$touched">Email inv\xE1lido.</p></div></div></div><div class=row><div class="col-md-offset-1 col-md-10"><div class=material-input><input md-input=Destinat\xE1rio name=to type=email ng-model=config.to required=""><p class="input-error help-block" ng-show="emailForm.to.$error.required && emailForm.to.$touched">Campo obrigat\xF3rio.</p><p class="input-error help-block" ng-show="emailForm.to.$error.email && emailForm.to.$touched">Email inv\xE1lido.</p></div></div></div><div class=row><div class="col-md-offset-1 col-md-10"><div class=material-input><input md-input=Assunto name=subject type=text ng-model=config.subject required=""><p class="input-error help-block" ng-show="emailForm.subject.$error.required && emailForm.subject.$touched">Campo obrigat\xF3rio.</p></div></div></div><div class=row><div class="col-md-offset-1 col-md-10"><div class=material-input><textarea md-input=Descri\xE7\xE3o name=description ng-model=config.description required=""></textarea><p class="input-error help-block" ng-show="emailForm.description.$error.required && emailForm.description.$touched">Campo obrigat\xF3rio.</p></div></div></div></div></form><div><div class=dialog-footer><button type=button class=md-button ng-click=close()>Cancelar</button> <button type=button class="md-button md-primary" ng-disabled=emailForms.$invalid ng-click=sendEmail(config)>Enviar</button></div></div></div>');
+$templateCache.put('criar-conta.html','<div class=dialog-inner><div ng-show=isLoading class=loader><div class=general-loader><div class=comment-icon><i class=dit></i> <i class=dit></i> <i class=dit></i></div></div></div><div class=steps ng-hide=isLoading><form name=emailForm key-enter="checkEmail(login.email, emailForm);" novalidate="" ng-show="index === 0" style="width: 560px;"><h2>Informe seu email</h2><p class=info>Ele ser\xE1 o seu login na PLING para acompanhar, via Painel do Cliente, o andamento de sua contrata\xE7\xE3o. Se voc\xEA j\xE1 participa da PLING, informe seu login.</p><div class=form-container><div class=row><div class="col-md-offset-2 col-md-8"><div class=material-input><input md-input="Seu email" name=email type=email ng-model=login.email required="" autocomplete=off plg-auto-focus=emailAutoFocus><p class="input-error help-block" ng-show="emailForm.email.$error.required && emailForm.email.$touched">Campo obrigat\xF3rio.</p><p class="input-error help-block" ng-show="emailForm.email.$error.email && emailForm.email.$touched">Email inv\xE1lido.</p></div></div></div></div></form><form name=loginForm key-enter="submitLoginForm(loginForm, login)" novalidate="" ng-show="index === 1" style="width: 560px;"><h2>{{ createAccount ? \'Crie sua senha\' : \'Informe sua senha\'}}</h2><p ng-if=!createAccount class=info>Identificamos que voc\xEA j\xE1 \xE9 um usu\xE1rio da PLING. Informe sua senha para prosseguirmos.</p><p ng-if=createAccount class=info>Ela deve conter no m\xEDnimo 6 caracteres, misturando letras e n\xFAmeros</p><div class=form-container><div class=row><div ng-class="{\'col-md-offset-2 col-md-4\' : createAccount, \'col-md-offset-3 col-md-6\' : !createAccount}"><div class=material-input ng-if=createAccount><input md-input="Sua senha" type=password name=pwd ng-model=login.pwd required="" ng-pattern="/(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])*[A-Za-z\\d$@$!%*#?&]{6,20}/" plg-auto-focus=pwdAutoFocus><plg-password-strength password=login.pwd></plg-password-strength></div><div class=material-input ng-if=!createAccount><input md-input="Sua senha" type=password name=pwd ng-model=login.pwd required="" plg-auto-focus=pwdAutoFocus></div></div><div class="col-md-offset-1 col-md-4" ng-if=createAccount><div class=material-input><input md-input="Confirme sua senha" type=password name=confPwd ng-model=login.confPwd required="" ng-pattern="/(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])*[A-Za-z\\d$@$!%*#?&]{6,20}/"></div></div></div><div class="row inline-err" ng-class="{\'inline-err-pass\' : createAccount}"><p ng-class="{\'col-md-offset-2\' : createAccount, \'col-md-offset-3\' : !createAccount}" style="padding-left: 5px;"></p><p class=input-error ng-show="createAccount && loginForm.pwd.$invalid && !loginForm.pwd.$pristine && loginForm.pwd.$touched">Sua senha deve conter no m\xEDnimo 6 caracteres, misturando letras e n\xFAmeros.</p><p class=input-error ng-show=loginErrorMessage>Esta senha n\xE3o corresponde ao login informado.</p><p class=input-error ng-show="login.pwd !== login.confPwd && loginForm.confPwd.$touched && !loginForm.pwd.$invalid">Senhas informadas n\xE3o conferem.</p></div></div></form><form name=customerForm key-enter=formSimpleSubmit(customerForm); novalidate="" ng-show="index === 2" style="width: 720px"><h2>Dados b\xE1sicos</h2><p ng-if=!customer._id class=info>Estas informa\xE7\xF5es s\xE3o necess\xE1rias para que possamos emitir a nota fiscal eletr\xF4nica da contrata\xE7\xE3o que est\xE1 sendo realizada.</p><p ng-if=customer._id class=info>Identificamos, pelo usu\xE1rio e senha informados, que voc\xEA j\xE1 possui uma conta ativa na PLING. Confirme seus dados ou corrija-os caso estejam equivocados.</p><div class=form-container><div class="row col-md-offset-1 col-md-10"><div class=col-md-12><div class=material-input><input md-input="Seu nome ou de sua empresa" type=text name=name plg-auto-focus=customerNameAutoFocus ng-model=customer.name ng-minlength=3 ng-maxlength=50 required=""><p class=input-error ng-show="customerForm.name.$invalid && customerForm.name.$touched">Campo obrigat\xF3rio ou M\xEDnimo de 3 e m\xE1ximo de 50 caracteres.</p></div></div></div><div class="row col-md-offset-1 col-md-10"><div class=col-md-4><div class=material-input><input md-input="Seu CPF ou CNPJ" type=text required="" name=cpfCnpj ng-model=customer.cpfCnpj ui-br-cpfcnpj-mask=""><p class=input-error ng-show="customerForm.cpfCnpj.$error.cpf && customerForm.cpfCnpj.$touched">CPF inv\xE1lido.</p><p class=input-error ng-show="customerForm.cpfCnpj.$error.cnpj && customerForm.cpfCnpj.$touched">CNPJ inv\xE1lido.</p><p class=input-error ng-show="customerForm.cpfCnpj.$error.required && customerForm.cpfCnpj.$touched">Campo obrigat\xF3rio.</p></div></div><div class=col-md-4><div class=material-input><input md-input="Seu telefone celular" name=phone ng-model=customer.phone ui-mask="(99) 9999-9999?9" ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{customerForm.phone.$viewValue ? \'_\' : \'\'}}" required=""><p class=input-error ng-show="customerForm.phone.$invalid && customerForm.phone.$touched">Campo obrigat\xF3rio.</p></div></div><div class=col-md-4><div class=material-input><input md-input="Telefone adicional" name=phoneTwo ng-model=customer.phoneTwo ui-mask="(99) 9999-9999?9" ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{customerForm.phoneTwo.$viewValue ? \'_\' : \'\'}}"></div></div></div></div></form><form name=customerComplementForm key-enter=formSimpleSubmit(customerComplementForm); novalidate="" ng-show="index === 3" style="width: 720px"><h2>Seu endere\xE7o</h2><p ng-if=!customer._id class=info>Estas informa\xE7\xF5es s\xE3o necess\xE1rias para que possamos emitir a nota fiscal eletr\xF4nica da contrata\xE7\xE3o que est\xE1 sendo realizada.</p><p ng-if=customer._id class=info>Identificamos, pelo usu\xE1rio e senha informados, que voc\xEA j\xE1 possui uma conta ativa na PLING. Confirme seus dados ou corrija-os caso estejam equivocados.</p><div class=form-container><div class=row><div class="col-md-offset-1 col-md-2"><div class=material-input><input md-input=CEP name=postalCode ng-model=customer.postalCode ng-change="getCep(customer.postalCode, customer)" plg-auto-focus=cepAutoFocus ui-mask=99999-999 ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{customerComplementForm.postalCode.$viewValue ? \'_\' : \'\'}}"><p class=input-error ng-show="customerComplementForm.postalCode.$invalid && customerComplementForm.postalCode.$touched">CEP inv\xE1lido.</p></div></div></div><div class=row><div class="col-md-offset-1 col-md-6"><div class=material-input><input md-input=Endere\xE7o type=text required="" name=address ng-model=customer.address ng-class="{\'input-loading\' : isCepLoading}"><p class=input-error ng-show="customerComplementForm.address.$invalid && !customerComplementForm.address.$pristine">Endere\xE7o incorreto.</p></div></div><div class=col-md-2><div class=material-input><input md-input=Numero name=number type=text ng-model=customer.addressNumber ui-mask=9?9?9?9?9?9?9?9 ui-mask-placeholder="" ui-mask-placeholder-char=space></div></div><div class=col-md-2><div class=material-input><input md-input=Complemento name=addressComplement ng-model=customer.addressComplement></div></div></div><div class=row><div class="col-md-offset-1 col-md-3"><div class=material-input><input md-input=Bairro required="" name=neighborhood ng-model=customer.neighborhood ng-class="{\'input-loading\' : isCepLoading}"></div></div><div class=col-md-3><div class=material-input><input md-input=Cidade required="" name=city ng-model=customer.city ng-class="{\'input-loading\' : isCepLoading}"></div></div><div class=col-md-4><div class=material-input><select md-input=Estado required="" ng-model=customer.state ng-class="{\'input-loading\' : isCepLoading}"><option ng-repeat="st in states" value={{st.uf}}>{{st.name}}</option></select></div></div></div></div></form><form name=paymentForm key-enter=formSimpleSubmit(paymentForm); novalidate="" ng-show="index === 4" style="width: 720px"><h2>Pagamento</h2><p class=info>Escolha a forma de pagamento e informe os dados de seu cart\xE3o de cr\xE9dito. Somente s\xE3o aceitos pagamentos atrav\xE9s de cart\xE3o de cr\xE9dito (Visa, MasterCard, Diners Club e Elo).</p><p class=info>{{ product.pricing.description }}</p><div class=form-container><div class=row><div class="col-md-offset-1 col-md-3"><div class=material-input><select md-input="Forma de Pagamento" name=payConditions required="" ng-model=paymentProfile.installments ng-class="{\'input-gray\' : !paymentProfile.installments}" plg-auto-focus=paymentAutoFocus><option ng-repeat="ins in getInstallmentNumber(product.pricing.installments)" value={{ins}}>{{ (ins) > 1 ? ins + \' vezes\' : \'\xC0 vista\' }}</option></select></div></div></div><div class=row><div class="col-md-offset-1 col-md-3"><div class=material-input><input md-input="N\xFAmero do cart\xE3o" name=cardNumber ng-model=paymentProfile.cardNumber card-validator=number plg-auto-focus=cardNumberFocus required="" ui-mask="9999 9999 9999 9?9?9?9" ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{paymentForm.cardNumber.$viewValue ? \'_\' : \'\'}}"><p class=input-error ng-show="paymentForm.cardNumber.$invalid && paymentForm.cardNumber.$touched">N\xFAmero do cart\xE3o inv\xE1lido.</p></div></div><div class=col-md-5><div class=material-input><input md-input="Nome impresso no cart\xE3o" autocomplete=off ng-change="paymentProfile.cardName=paymentProfile.cardName.toUpperCase();" name=cardName ng-model=paymentProfile.cardName ng-minlength=1 ng-maxlength=100 required=""></div></div><div class=col-md-1><div class=material-input><input md-input=Validade name=validDate class=input-item ng-model=paymentProfile.validDate ui-mask=99/99 card-validator=date ui-mask-placeholder="" ui-mask-placeholder-char="" placeholder="{{paymentForm.validDate.$viewValue ? \'_\' : \'\'}}"><p class=input-error ng-show="paymentForm.validDate.$invalid && paymentForm.validDate.$touched">Validade inv\xE1lida.</p></div></div><div class=col-md-1><div class=material-input><input md-input=CVV type=password ng-model=paymentProfile.cvv required="" ng-minlength=3 ng-maxlength=3 maxlength=3></div></div></div></div></form><div ng-show="index === 5" style="width: 720px;"><h2>Resumo do pedido</h2><p class=info>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque laoreet velit</p><div class=form-container><div class="row col-md-offset-1 col-md-10"><div class=col-md-6><div class=material-input><input class="input-item hasValue" value={{customer.name}} disabled=""> <label>Nome</label> <span class=bar></span></div></div><div class=col-md-6><div class=material-input><input class="input-item hasValue" value={{customer.cpfCnpj}} disabled=""> <label>{{ customer.cpfCnpj.length < 12 ? \'CPF\' : \'CNPJ\' }}</label> <span class=bar></span></div></div></div><div class="row col-md-offset-1 col-md-10"><div class=col-md-6><div class=material-input><input class="input-item hasValue" value={{product.name}} disabled=""> <label>Produto</label> <span class=bar></span></div></div><div class=col-md-6><div class=material-input><input class="input-item hasValue" value="{{product.pricing.price + \' - \' + paymentProfile.installments + \'x\'}}" disabled=""> <label>Valor</label> <span class=bar></span></div></div></div><div class="row col-md-offset-1 col-md-10"><div class=col-md-6><div class=material-input><input class="input-item hasValue" value="XXXX.XXXX.XXXX.{{paymentProfile.cardNumber.substr(12, 4)}}" disabled=""> <label>Cart\xE3o</label> <span class=bar></span></div></div></div></div></div><div ng-show="index === 6" style="width: 720px"><h2>{{responseMessage}}</h2><p class=info>{{responseText}}</p></div></div></div><div class=dialog-footer ng-hide=isLoading><div ng-if="index === 0"><button type=button md-button="" ng-click=checkEmail(login.email); ng-disabled=emailForm.$invalid>Avan\xE7ar</button></div><div ng-if="index === 1"><button type=button class="md-button md-primary" ng-click="prevStep(loginForm); clearInputs();">Voltar</button> <button ng-if=createAccount type=button class="md-button md-primary" ng-click="formSimpleSubmit(); savePwd(login);" ng-disabled="loginForm.$invalid || (login.pwd !== login.confPwd && createAccount)">Avan\xE7ar</button> <button ng-if=!createAccount type=button class="md-button md-primary" ng-click=loginUser(login) ng-disabled=loginForm.$invalid>Avan\xE7ar</button></div><div ng-if="index === 2"><button type=button class="md-button md-primary" ng-click=prevStep(customerForm)>Voltar</button> <button type=button class="md-button md-primary" ng-click=formSimpleSubmit(customerForm); ng-disabled=customerForm.$invalid>Avan\xE7ar</button></div><div ng-if="index === 3"><button type=button class="md-button md-primary" ng-click=prevStep(customerComplementForm);>Voltar</button> <button type=button class="md-button md-primary" ng-click=formSimpleSubmit(customerComplementForm); ng-disabled=customerComplementForm.$invalid>Avan\xE7ar</button></div><div ng-if="index === 4"><button type=button class="md-button md-primary" ng-click=prevStep(paymentForm);>Voltar</button> <button type=button class="md-button md-primary" ng-disabled=paymentForm.$invalid; ng-click=formSimpleSubmit(paymentForm)>Avan\xE7ar</button></div><div ng-if="index === 5"><button type=button class="md-button md-primary" ng-click=prevStep()>Voltar</button> <button type=button class="md-button md-primary" ng-click="sendPayment(customer, paymentProfile, product)">Contratar</button></div><div ng-if="index === 6"><button type=button class="md-button md-primary" ng-if=!showError ng-hide=paymentError ng-click=redirectToPanel()>Acessar painel</button> <button type=button class="md-button md-primary" ng-if=!showError ng-show=paymentError ng-click=tryAgain(paymentProfile)>Tentar novamente</button> <button type=button class="md-button md-primary" ng-if=showError ng-click=close();>OK</button></div></div>');}]);
