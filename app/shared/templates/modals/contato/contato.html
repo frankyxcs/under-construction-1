@@ -1,0 +1,43 @@
+<div class="dialog-inner">
+    <!--loader animation-->
+    <div ng-show="isLoading" class="loader">
+        <div class="general-loader">
+            <div class="comment-icon">
+                <i class="dit"></i>
+                <i class="dit"></i>
+                <i class="dit"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="steps" ng-hide="isLoading">                
+        <!--Email-->
+        <form name="emailForm" novalidate style="width: 560px;" autocomplete="off">
+            <h2>Fale conosco</h2>
+
+            <div class="form-container" ng-init="emailAutoFocus = true;">
+                <div class="row">
+                    <div class="col-md-offset-2 col-md-8">
+                        <div class="material-input">
+                            <input md-input="Nome" name="name" type="text" ng-model="info.name" required autocomplete="off" plg-auto-focus="emailAutoFocus">
+                        </div>
+                        <div class="material-input">
+                            <input md-input="Email" name="email" type="email" ng-model="info.email" required autocomplete="off">
+                            <p class="input-error help-block" ng-show="emailForm.email.$error.required && emailForm.email.$touched">Campo obrigatório.</p>
+                            <p class="input-error help-block" ng-show="emailForm.email.$error.email && emailForm.email.$touched">Email inválido.</p>
+                        </div>
+                        <div class="material-input">
+                            <textarea md-input="Descrição" name="description" type="text" ng-model="info.description" required autocomplete="off" maxlength="160"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+</div>
+
+<div class="dialog-footer">
+    <button type="button" md-button ng-click="close();">Cancelar</button>
+    <button type="button" class="md-button md-primary" ng-click="send();" ng-disabled="emailForm.email.$error.required || emailForm.name.$error.required || emailForm.description.$error.required">Enviar</button>
+</div>

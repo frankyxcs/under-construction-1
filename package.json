@@ -1,23 +1,64 @@
 {
-  "name": "under-construction",
-  "version": "0.1.0",
-  "description": "Nossa pagina de em contrucao",
-  "author": "Felipe Kautzmann <felipe.kautzma@gmail.com>",
-  "main": "index.html",
-  "homepage": "https://github.com/plingbr/under-construction#readme",
+  "name": "pling-site",
+  "version": "1.6.0",
+  "description": "Pling site",
+  "main": "server.js",
+  "author": "Pling <contato@pling.net.br>",
+  "homepage": "https://github.com/plingbr/pling.net.br",
   "license": "UNLICENSED",
+  "engines": {
+    "node": "6.9.1",
+    "npm": "3.9.5"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node node_modules/gulp/bin/gulp.js test",
+    "clean": "node node_modules/gulp/bin/gulp.js clean",
+    "build": "node node_modules/gulp/bin/gulp.js build",
+    "release": "node node_modules/gulp/bin/gulp.js release",
+    "dev": "node node_modules/gulp/bin/gulp.js dev",
+    "start": "pm2 start server.js --name \"pling.net.br\""
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/plingbr/under-construction.git"
+    "url": "https://github.com/plingbr/pling.net.br"
   },
   "keywords": [
-    "under-construction"
+    "AngularJS",
+    "Javascript",
+    "SPA",
+    "pling.net.br",
+    "Pling"
   ],
   "bugs": {
-    "url": "https://github.com/plingbr/under-construction/issues"
+    "url": "https://github.com/plingbr/pling.net.br/issues"
   },
-  
+  "devDependencies": {
+    "compression": "^1.6.2",
+    "del": "^1.1.1",
+    "eslint": "^2.13.0",
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^2.0.6",
+    "gulp-concat": "^2.5.2",
+    "gulp-connect": "^2.2.0",
+    "gulp-eslint": "^2.0.0",
+    "gulp-ng-annotate": "^2.0.0",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-uglify": "^1.5.4",
+    "gulp-util": "^2.0.0",
+    "open": "0.0.5"
+  },
+  "dependencies": {
+    "angular-animate": "1.5.9",
+    "angular-aria": "1.5.9",
+    "angular-material": "1.1.1",
+    "angular-material-data-table": "0.10.9",
+    "dotenv": "^4.0.0",
+    "express": "^4.12.3",
+    "findup-sync": "^0.4.3",
+    "gulp-angular-templatecache": "^2.0.0",
+    "gulp-flatten": "^0.3.1",
+    "gulp-minify-html": "^1.0.6",
+    "pling-ui-lite": "^0.1.4",
+    "serve-static": "^1.9.2"
+  }
 }
